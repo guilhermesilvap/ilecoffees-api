@@ -1,27 +1,30 @@
 {
-  "name": "api-mytasks",
+  "name": "api-ilecoffees",
   "version": "1.0.0",
   "main": "src/server.ts",
-  "engines":{
+  "engines": {
     "node": ">=18"
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build":"tsup src --out-dir build",
+    "build": "tsup src --out-dir build",
     "start": "node build/server.js"
   },
   "author": "Guilherme Silva",
   "license": "ISC",
-  "description": "API de administração de tarefas pessoais",
+  "description": "API do site oficial da ILE coffees",
   "dependencies": {
     "-": "^0.0.1",
     "@prisma/client": "^6.2.1",
     "bcrypt": "^5.1.1",
+    "cloudinary": "^1.41.3",
     "cors": "^2.8.5",
     "D": "^1.0.0",
     "express": "^4.19.2",
     "express-async-errors": "^3.1.1",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.1",
+    "multer-storage-cloudinary": "^4.0.0",
     "prisma-query": "^2.0.0",
     "zod": "^3.24.1"
   },
@@ -30,6 +33,7 @@
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
+    "@types/multer": "^2.0.0",
     "prisma": "^6.2.1",
     "ts-node": "^10.9.2",
     "tsup": "^8.3.0",

@@ -1,51 +1,173 @@
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url = "postgresql://mytasks_w7bz_user:PYlPIJ9INs4X6671nljfHOPRQWRn8un3@dpg-d1omukruibrs73cvk0t0-a.oregon-postgres.render.com/mytasks_w7bz"
+  url      = "postgresql://postgres:postgres@localhost:5432/ilecoffeens"
 }
 
-enum taskStatus {
-  pending
-  completed 
+enum SaleType {
+  KG
+  PACKAGE
 }
 
-enum Color {
-  red       @map("#DC2127")   
-  green       @map("#7AE7BF")  
-  blue       @map("#A4BDFC")   
-  orange      @map("#FF887C")   
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELED
+}
+
+enum OrderType {
+  ONE_TIME
+  SUBSCRIPTION
+}
+
+enum AccountType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PIX
+  BOLETO
+  MERCADO_PAGO
+  STRIPE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+model Supplier {
+  id            String         @id @default(uuid())
+  photoUrl      String?
+  name          String
+ 
+  cep          String
+  street       String
+  number       String
+  district     String
+  city         String
+  state        String
+  complement   String?
+
+  email         String         @unique
+  passwordHash  String
+  deletedAt     DateTime?
+  createdAt     DateTime       @default(now())
+  coffees       Coffee[]
+  subscriptions Subscription[]
+}
+
+model User {
+  id           String      @id @default(uuid())
+  photoUrl     String?
+  accountType  AccountType // 'INDIVIDUAL' | 'COMPANY'
+  name         String
+  email        String      @unique
+  phoneNumber  String
+  passwordHash String
+
+  //Endereço
+  cep          String
+  street       String
+  number       String
+  district     String
+  city         String
+  state        String
+  complement   String? 
+
   
+  deletedAt    DateTime?
+  createdAt    DateTime    @default(now())
+  cartItems    CartItem[]
+  Order        Order[]
 }
 
-
-model User{
-  id String @id @default(uuid())
-  name String 
-  email String @unique
-  password String
-
-  tasks Tasks[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
-
-  @@map("users")
-}
-
-model Tasks{
-  id String @id @default(uuid())
-  title String 
+model Coffee {
+  id          String     @id @default(uuid())
+  photoUrl    String?
+  name        String
   description String
-  color Color
-  status taskStatus
+  variety     String
+  process     String
+  region      String 
+  altitude    Int 
+  saleType    SaleType @default(KG)
+  pricePerKg   Float?
+  packagePrice  Float? 
+  packageWeight Float?
+  farm        String 
+  producer    String 
+  score       Int
+  sensory     String 
+  roast       String
+  stock       Int?
+  supplierId  String
+  supplier    Supplier   @relation(fields: [supplierId], references: [id])
+  deletedAt   DateTime?
+  createdAt   DateTime   @default(now())
+  subscriptions Subscription[] @relation("SubscriptionCoffees")
+  CartItem    CartItem[]
+  Order       Order[]
+}
 
-  userId String @map("user_id")
-  user User @relation(fields: [userId], references: [id])
+model Subscription {
+  id           String    @id @default(uuid())
+  name         String
+  description  String
+  monthlyPrice Int       
+  annualPrice  Int
+  createdAt    DateTime   @default(now())
+  quantity     Float?
+  deletedAt    DateTime?
+  supplierId   String
+  supplier     Supplier  @relation(fields: [supplierId], references: [id])
+  coffees      Coffee[]  @relation("SubscriptionCoffees")
+  Order        Order[]
+}
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime? @updatedAt @map("updated_at")
+model CartItem {
+  id       String   @id @default(uuid())
+  userId   String
+  coffeeId String
+  quantity Int
+  coffee   Coffee   @relation(fields: [coffeeId], references: [id])
+  user     User     @relation(fields: [userId], references: [id])
+  addedAt  DateTime @default(now())
+}
+
+model Order {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation(fields: [userId], references: [id])
+  coffeeId       String?
+  coffee         Coffee?       @relation(fields: [coffeeId], references: [id])
+  subscriptionId String?
+  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  quantity       Int?
+  totalPrice     Float
+  type           OrderType     @default(ONE_TIME)
+  status         OrderStatus   @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  payment        Payment?
+}
+
+model Payment {
+  id        String        @id @default(uuid())
+  orderId   String        @unique
+  order     Order         @relation(fields: [orderId], references: [id])
+  amount    Float
+  method    PaymentMethod
+  status    PaymentStatus @default(PENDING)
+  paidAt    DateTime?
+  createdAt DateTime      @default(now())
 }
