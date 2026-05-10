@@ -23,6 +23,13 @@ enum OrderStatus {
 enum OrderType {
   ONE_TIME
   SUBSCRIPTION
+  COURSE
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
 }
 
 enum AccountType {
@@ -43,6 +50,19 @@ enum PaymentStatus {
   SUCCESS
   FAILED
   REFUNDED
+}
+
+enum BillingCycle {
+  MONTHLY
+  ANNUAL
+}
+
+model Admin {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
 }
 
 model Supplier {
@@ -85,10 +105,11 @@ model User {
   complement   String? 
 
   
-  deletedAt    DateTime?
-  createdAt    DateTime    @default(now())
-  cartItems    CartItem[]
-  Order        Order[]
+  deletedAt         DateTime?
+  createdAt         DateTime           @default(now())
+  cartItems         CartItem[]
+  Order             Order[]
+  courseEnrollments CourseEnrollment[]
 }
 
 model Coffee {
@@ -152,7 +173,10 @@ model Order {
   coffee         Coffee?       @relation(fields: [coffeeId], references: [id])
   subscriptionId String?
   subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
+  courseId       String?
+  course         Course?       @relation(fields: [courseId], references: [id])
   quantity       Int?
+  billingCycle   BillingCycle?
   totalPrice     Float
   type           OrderType     @default(ONE_TIME)
   status         OrderStatus   @default(PENDING)
@@ -170,4 +194,43 @@ model Payment {
   status    PaymentStatus @default(PENDING)
   paidAt    DateTime?
   createdAt DateTime      @default(now())
+}
+
+model Course {
+  id            String             @id @default(uuid())
+  title         String
+  description   String
+  imageUrl      String?
+  price         Float
+  workloadHours Int
+  level         CourseLevel
+  deletedAt     DateTime?
+  createdAt     DateTime           @default(now())
+  lessons       CourseLesson[]
+  enrollments   CourseEnrollment[]
+  orders        Order[]
+}
+
+model CourseLesson {
+  id              String   @id @default(uuid())
+  courseId        String
+  course          Course   @relation(fields: [courseId], references: [id])
+  title           String
+  description     String?
+  videoUrl        String
+  order           Int
+  isLocked        Boolean  @default(true)
+  durationMinutes Int?
+  createdAt       DateTime @default(now())
+}
+
+model CourseEnrollment {
+  id         String   @id @default(uuid())
+  userId     String
+  courseId   String
+  enrolledAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  course     Course   @relation(fields: [courseId], references: [id])
+
+  @@unique([userId, courseId])
 }

@@ -2,7 +2,7 @@ import express from "express"
 import "express-async-errors"
 import cors from "cors"
 import { errorHandling } from "./middlewares/error-handling"
-import { routes } from "./routes"
+import { routes } from "./frameworks/http/routes"
 
 const app = express()
 app.use(cors())

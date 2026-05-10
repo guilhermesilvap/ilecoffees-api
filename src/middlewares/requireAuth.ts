@@ -5,7 +5,7 @@ import { verify } from "jsonwebtoken"
 
 interface TokenPayload {
   id: string
-  type: `SUPPLIER` | `USER`
+  type: 'USER' | 'SUPPLIER' | 'ADMIN'
 }
 
 function requireAuth(request: Request, response: Response, next: NextFunction) {
