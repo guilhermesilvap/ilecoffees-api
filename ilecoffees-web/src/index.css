@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Íle Coffees Design System */
+
+@layer base {
+  :root {
+    /* Raw brand hex vars — used directly in inline styles and components */
+    --c-barro:    #0f2315;
+    --c-mostarda: #e58a2a;
+    --c-vibra:    #e7402c;
+    --c-leveza:   #d8ead0;
+    --c-glamour:  #0f2920;
+    --bg:         #eef3eb;
+    --bg-2:       #dce8d8;
+    --ink:        #0f2315;
+    --ink-2:      #3d2b18;
+    --ink-3:      #7a6040;
+    --accent:     #e7402c;
+    --accent-warm:#e58a2a;
+    --line:       #c4d8bc;
+    --paper:      #f7faf5;
+    --success:    #2e7244;
+
+    /* shadcn/ui HSL variables */
+    --background: 106 18% 93%;       /* #eef3eb sage */
+    --foreground: 142 52% 9%;        /* #0f2315 forest green */
+
+    --card: 120 15% 97%;             /* #f7faf5 paper */
+    --card-foreground: 142 52% 9%;
+
+    --popover: 120 15% 97%;
+    --popover-foreground: 142 52% 9%;
+
+    --primary: 7 78% 54%;            /* #e7402c vibra */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 155 46% 11%;        /* #0f2920 glamour */
+    --secondary-foreground: 109 28% 86%;
+
+    --muted: 108 22% 87%;            /* sage tint */
+    --muted-foreground: 28 44% 25%;
+
+    --accent: 33 77% 53%;            /* #e58a2a mostarda */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 108 22% 79%;           /* #c4d8bc line */
+    --input: 108 22% 84%;
+    --ring: 7 78% 54%;
+
+    --radius: 0.5rem;
+
+    /* Brand gradients */
+    --gradient-warm: linear-gradient(135deg, #e7402c 0%, #e58a2a 100%);
+    --gradient-hero: linear-gradient(160deg, #0f2920 0%, #0f2315 60%, #e58a2a 100%);
+    --gradient-cream: linear-gradient(180deg, #eef3eb 0%, #dce8d8 100%);
+
+    /* Shadows */
+    --shadow-card: 0 2px 12px 0 hsl(142 52% 9% / 0.10);
+    --shadow-warm: 0 8px 32px -8px hsl(7 78% 54% / 0.30);
+
+    /* Sidebar (dark green) */
+    --sidebar-background: 155 46% 11%;
+    --sidebar-foreground: 109 28% 86%;
+    --sidebar-primary: 33 77% 53%;
+    --sidebar-primary-foreground: 142 52% 9%;
+    --sidebar-accent: 155 46% 16%;
+    --sidebar-accent-foreground: 109 28% 86%;
+    --sidebar-border: 155 46% 18%;
+    --sidebar-ring: 33 77% 53%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Tinos', serif;
+  }
+
+  .font-script, .script {
+    font-family: 'Italianno', cursive;
+    font-weight: 400;
+  }
+
+  .font-mono, .mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 400;
+  }
+
+  .serif {
+    font-family: 'Tinos', 'Times New Roman', Times, serif;
+    font-weight: 400;
+  }
+
+  .italic {
+    font-style: italic;
+  }
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@layer components {
+  .ile-card {
+    @apply bg-white border border-border rounded-xl shadow-[var(--shadow-card)] p-6;
+  }
+
+  .ile-btn-primary {
+    background: var(--gradient-warm);
+    @apply text-white font-semibold rounded-lg px-6 py-3 transition-opacity hover:opacity-90;
+  }
+
+  .ile-section {
+    @apply py-16;
+  }
+
+  .ile-container {
+    @apply container mx-auto px-4 max-w-6xl;
+  }
+
+  /* Legacy compat */
+  .coffee-gradient {
+    background: var(--gradient-warm);
+  }
+  .warm-gradient {
+    background: var(--gradient-warm);
+  }
+  .hero-gradient {
+    background: var(--gradient-hero);
+  }
+  .coffee-shadow {
+    box-shadow: var(--shadow-card);
+  }
+  .warm-shadow {
+    box-shadow: var(--shadow-warm);
+  }
+  .coffee-transition {
+    transition: all 0.25s ease;
+  }
+  .bounce-transition {
+    transition: all 0.35s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+  .hover-coffee {
+    @apply coffee-transition hover:warm-shadow hover:scale-[1.02];
+  }
+  .coffee-card {
+    @apply ile-card;
+  }
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
