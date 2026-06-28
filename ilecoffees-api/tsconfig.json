@@ -1,7 +1,7 @@
 {
 "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2023"],
+    "lib": ["ES2023", "DOM"],
 
     "paths":{
         "@/*": ["./src/*"]
@@ -10,9 +10,11 @@
     "module": "node16",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
 
     "strict": true,
-    "skipLibCheck": false
+    "skipLibCheck": true,
+    "types": ["node", "vitest/globals", "react"]
 }
 
 }
