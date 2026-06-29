@@ -42,15 +42,28 @@ server {
 
     client_max_body_size 20M;
 
-    # Frontend — arquivos estáticos
-    root /home/deploy/app/ilecoffees-web/dist;
+    root /home/app/ilecoffees-web/dist;
     index index.html;
 
+    # index.html nunca cacheado — força browser a buscar versão nova
+    location = /index.html {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
+        try_files $uri /index.html;
+    }
+
+    # Arquivos com hash (JS/CSS) — cache longo, Vite garante nome novo a cada build
+    location ~* \.(js|css|woff2?|ttf|svg|png|jpg|jpeg|gif|ico|webp)$ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    # SPA fallback
     location / {
         try_files $uri $uri/ /index.html;
     }
 
-    # API — proxy para o Node.js na porta 3333
+    # API proxy
     location /api/ {
         proxy_pass http://localhost:3333/;
         proxy_http_version 1.1;
