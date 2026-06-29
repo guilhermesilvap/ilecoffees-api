@@ -2,7 +2,7 @@
 # Roda no servidor a cada novo deploy
 set -e
 
-APP_DIR="/home/deploy/app"
+APP_DIR="/home/app"
 API_DIR="$APP_DIR/ilecoffees-api"
 WEB_DIR="$APP_DIR/ilecoffees-web"
 
