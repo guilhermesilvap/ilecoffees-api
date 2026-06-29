@@ -8,6 +8,7 @@ import { routes } from './frameworks/http/routes'
 
 const app = express()
 
+app.set('trust proxy', 1)
 app.use(helmet())
 
 const authLimiter = rateLimit({
