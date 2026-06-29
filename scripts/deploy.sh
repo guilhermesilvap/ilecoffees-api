@@ -19,7 +19,7 @@ npx prisma migrate deploy
 echo "===> Build do frontend..."
 cd "$WEB_DIR"
 npm install
-npm run build
+NODE_OPTIONS="--max-old-space-size=400" npm run build
 
 echo "===> Reiniciando API..."
 pm2 restart ilecoffees-api 2>/dev/null || pm2 start "$API_DIR/build/server.js" --name ilecoffees-api
