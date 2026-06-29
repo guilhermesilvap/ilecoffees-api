@@ -483,10 +483,10 @@ function Filters({ filters, setFilters, total, regions, role, mob }: {
     });
   }
   function reset() {
-    setFilters({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 999 });
+    setFilters({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 5000 });
   }
-  const hasActive = filters.q || filters.regions.length || filters.sale !== "ALL" || filters.minPrice > 0 || filters.maxPrice < 999;
-  const activeCount = Number(!!filters.q) + filters.regions.length + Number(filters.sale !== "ALL") + Number(filters.minPrice > 0) + Number(filters.maxPrice < 999);
+  const hasActive = filters.q || filters.regions.length || filters.sale !== "ALL" || filters.minPrice > 0 || filters.maxPrice < 5000;
+  const activeCount = Number(!!filters.q) + filters.regions.length + Number(filters.sale !== "ALL") + Number(filters.minPrice > 0) + Number(filters.maxPrice < 5000);
 
   const saleOptions = role === "CUSTOMER"
     ? [{ value: "ALL", label: "Todos" }, { value: "PACKAGE", label: "Pacote" }]
@@ -535,13 +535,13 @@ function Filters({ filters, setFilters, total, regions, role, mob }: {
       <FilterSection title={`Faixa de preço · R$ ${filters.minPrice}–${filters.maxPrice}`}>
         <div style={{ paddingTop: 6 }}>
           <div style={{ position: "relative", height: 4, background: "var(--bg-2)", borderRadius: 999 }}>
-            <div style={{ position: "absolute", left: `${(filters.minPrice / 999) * 100}%`, right: `${100 - (filters.maxPrice / 999) * 100}%`, top: 0, bottom: 0, background: "var(--ink)", borderRadius: 999 }} />
+            <div style={{ position: "absolute", left: `${(filters.minPrice / 5000) * 100}%`, right: `${100 - (filters.maxPrice / 5000) * 100}%`, top: 0, bottom: 0, background: "var(--ink)", borderRadius: 999 }} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 14 }}>
             <input type="number" min="0" max={filters.maxPrice} value={filters.minPrice}
               onChange={e => setFilters(f => ({ ...f, minPrice: Math.min(Number(e.target.value), f.maxPrice) }))}
               style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 13, background: "var(--bg)", outline: "none", fontFamily: "inherit" }} />
-            <input type="number" min={filters.minPrice} max="999" value={filters.maxPrice}
+            <input type="number" min={filters.minPrice} max="5000" value={filters.maxPrice}
               onChange={e => setFilters(f => ({ ...f, maxPrice: Math.max(Number(e.target.value), f.minPrice) }))}
               style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 13, background: "var(--bg)", outline: "none", fontFamily: "inherit" }} />
           </div>
@@ -974,7 +974,7 @@ export default function CatalogPage() {
   const [mobMenuOpen, setMobMenuOpen] = useState(false);
   const [coffees, setCoffees] = useState<Coffee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<Filters>({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 999 });
+  const [filters, setFilters] = useState<Filters>({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 5000 });
   const PAGE_SIZE = 9;
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [cartOpen, setCartOpen] = useState(false);
@@ -1034,7 +1034,7 @@ export default function CatalogPage() {
   }, [addItem, isAuthenticated]);
 
   const resetFilters = useCallback(() => {
-    setFilters({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 999 });
+    setFilters({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 5000 });
     setVisibleCount(PAGE_SIZE);
   }, [PAGE_SIZE]);
 
