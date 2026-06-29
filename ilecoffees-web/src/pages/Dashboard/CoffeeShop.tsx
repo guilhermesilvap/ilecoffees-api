@@ -2,22 +2,11 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 import { CartButton } from "@/components/Cart/CartButton";
 import OrderDetailModal from "@/components/OrderDetailModal";
 import { useMobile } from "@/contexts/MobileContext";
-
-
-interface CoffeeItem {
-  id: string;
-  name: string;
-  description: string | null;
-  pricePerKg: number | null;
-  packagePrice: number | null;
-  packagePriceCoffeeshop: number | null;
-  saleType: "KG" | "PACKAGE" | "BOTH";
-  photoUrl: string | null;
-  supplier?: { name: string };
-}
+import { CoffeeCard, Coffee } from "@/components/CoffeeCard";
 
 
 interface Course {
@@ -440,11 +429,12 @@ export default function CoffeeShopDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout, updateUser } = useAuth();
+  const { addItem } = useCart();
 
   const VALID_TABS: TabId[] = ["HOME", "CATALOG", "ORDERS", "STOCK", "FUNCIONARIOS", "PROFILE"];
   const tabFromUrl = searchParams.get("tab") as TabId;
   const [active, setActive] = useState<TabId>(VALID_TABS.includes(tabFromUrl) ? tabFromUrl : "HOME");
-  const [coffees, setCoffees] = useState<CoffeeItem[]>([]);
+  const [coffees, setCoffees] = useState<Coffee[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -484,7 +474,7 @@ export default function CoffeeShopDashboard() {
   useEffect(() => {
     if (!user) return;
     Promise.all([
-      api.get<CoffeeItem[]>("/coffees?supplierType=ROASTER"),
+      api.get<Coffee[]>("/coffees?supplierType=ROASTER"),
       api.get<Course[]>("/courses").then(async res => {
         try {
           const enroll = await api.get<{ courseId: string; progress: number }[]>("/courses/my-enrollments");
@@ -642,6 +632,11 @@ export default function CoffeeShopDashboard() {
   const activeSubs      = orders.filter(o => o.type === "SUBSCRIPTION" && o.status === "PAID");
 
   const mob = useMobile();
+
+  const addToCatalogCart = useCallback(async (c: Coffee, qty = 1) => {
+    try { await addItem(c.id, qty); } catch { /* silently ignore */ }
+  }, [addItem]);
+
   const userName    = user?.name ?? "Cafeteria";
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
@@ -729,58 +724,10 @@ export default function CoffeeShopDashboard() {
                     </h1>
                     <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 8 }}>{coffees.length} cafés disponíveis com preços exclusivos para cafeterias</p>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 16 }}>
-                    {coffees.map(coffee => {
-                      const retailPrice = coffee.packagePrice ?? coffee.pricePerKg;
-                      const b2bPrice    = coffee.packagePriceCoffeeshop ?? retailPrice;
-                      const unit        = coffee.saleType === "KG" ? "kg" : "pct";
-                      const saving      = (coffee.packagePriceCoffeeshop && retailPrice && retailPrice > coffee.packagePriceCoffeeshop)
-                        ? Math.round((1 - coffee.packagePriceCoffeeshop / retailPrice) * 100)
-                        : null;
-                      return (
-                        <div key={coffee.id} style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                          <div style={{ aspectRatio: "4/3", background: "var(--bg-2)", overflow: "hidden", position: "relative" }}>
-                            {coffee.photoUrl
-                              ? <img src={coffee.photoUrl} alt={coffee.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                              : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                  <span className="serif italic" style={{ fontSize: 32, color: "var(--ink-3)" }}>íle</span>
-                                </div>
-                            }
-                            {saving !== null && (
-                              <span className="mono" style={{ position: "absolute", top: 12, right: 12, fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", padding: "4px 10px", background: "var(--success)", color: "#fff", borderRadius: 999 }}>
-                                −{saving}% B2B
-                              </span>
-                            )}
-                          </div>
-                          <div style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 10, flex: 1 }}>
-                            <div>
-                              <div className="serif" style={{ fontSize: 19, lineHeight: 1.1, letterSpacing: "-.01em" }}>{coffee.name}</div>
-                              {coffee.supplier && <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 3 }}>{coffee.supplier.name}</div>}
-                              {coffee.description && <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 6, lineHeight: 1.45 }}>{coffee.description.slice(0, 80)}{coffee.description.length > 80 ? "…" : ""}</div>}
-                            </div>
-
-                            {/* Comparativo de preços */}
-                            <div style={{ background: "var(--bg-2)", borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 5 }}>
-                              {retailPrice && coffee.packagePriceCoffeeshop && (
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                                  <span style={{ fontSize: 12, color: "var(--ink-2)" }}>Preço normal</span>
-                                  <span style={{ fontSize: 13, color: "var(--ink-2)", textDecoration: "line-through" }}>{fmt(retailPrice)}<span style={{ fontSize: 10, marginLeft: 3 }}>/{unit}</span></span>
-                                </div>
-                              )}
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                                <span className="mono" style={{ fontSize: 10, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--c-vibra)" }}>Seu preço B2B</span>
-                                <span className="serif" style={{ fontSize: 20, color: "var(--ink)" }}>{fmt(b2bPrice ?? 0)}<span style={{ fontSize: 11, color: "var(--ink-2)", marginLeft: 3 }}>/{unit}</span></span>
-                              </div>
-                            </div>
-
-                            <button onClick={() => navigate(`/product/${coffee.id}`)}
-                              style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "10px", borderRadius: 999, background: "var(--ink)", color: "var(--c-leveza)", fontSize: 13, border: "none", cursor: "pointer", fontFamily: "inherit", marginTop: "auto" }}>
-                              Comprar <Arrow size={11} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="ile-cards-grid">
+                    {coffees.map(coffee => (
+                      <CoffeeCard key={coffee.id} c={coffee} onAdd={addToCatalogCart} role="COFFEESHOP" mob={mob} />
+                    ))}
                     {coffees.length === 0 && (
                       <div style={{ gridColumn: "1 / -1", padding: "48px 24px", textAlign: "center", background: "var(--paper)", border: "1px dashed var(--line)", borderRadius: 16 }}>
                         <p style={{ fontSize: 14, color: "var(--ink-2)" }}>Nenhum café disponível no momento.</p>
