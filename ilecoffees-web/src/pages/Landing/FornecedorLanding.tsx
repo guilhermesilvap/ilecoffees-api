@@ -1,15 +1,7 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useMobile } from "@/contexts/MobileContext";
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 function Logo() {
   return (
@@ -141,7 +133,7 @@ function LotPreview({ mob }: { mob: boolean }) {
 }
 
 export default function FornecedorLanding() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (

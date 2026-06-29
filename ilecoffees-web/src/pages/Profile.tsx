@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
+import { useMobile } from "@/contexts/MobileContext";
 
 /* ── Icons ── */
 function Chevron({ open }: { open: boolean }) {
@@ -79,77 +80,53 @@ function Header() {
     (type === "SUPPLIER" || type === "ADMIN" || accountType === "COFFEESHOP")
       ? "var(--c-leveza)" : "var(--ink)";
 
+  const mob = useMobile();
+  const avatarSpan = (
+    <span style={{ width: 32, height: 32, borderRadius: 999, flexShrink: 0, overflow: "hidden", background: avatarBg, color: avatarColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 600 }}>
+      {(user as any)?.photoUrl ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : (initials || "?")}
+    </span>
+  );
+
   return (
-    <header style={{
-      position: "sticky", top: 0, zIndex: 30,
-      background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)",
-      borderBottom: "1px solid var(--line)",
-    }}>
-      <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: "16px 32px",
-        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Logo />
-          <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
-          <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
-            <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
-            <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
-          </nav>
-        </div>
-
-        <div />
-
-        <div ref={menuRef} style={{ position: "relative" }}>
-          <button onClick={() => setMenuOpen(o => !o)} style={{
-            display: "inline-flex", alignItems: "center", gap: 10,
-            padding: "6px 14px 6px 6px", borderRadius: 999,
-            border: "1px solid var(--line)", background: "var(--paper)",
-            cursor: "pointer", fontFamily: "inherit",
-          }}>
-            <span style={{
-              width: 34, height: 34, borderRadius: 999, flexShrink: 0, overflow: "hidden",
-              background: avatarBg, color: avatarColor,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 12, fontWeight: 600, letterSpacing: ".02em",
-            }}>
-              {(user as any)?.photoUrl
-                ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : (initials || "?")}
-            </span>
-            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
-              <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{firstName}</span>
-              <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)", lineHeight: 1 }}>{roleLabel}</span>
-            </span>
-            <Chevron open={menuOpen} />
-          </button>
-          {menuOpen && (
-            <div style={{
-              position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 50,
-              minWidth: 160, background: "var(--paper)",
-              border: "1px solid var(--line)", borderRadius: 12,
-              boxShadow: "0 8px 24px rgba(0,0,0,.08)", padding: 6,
-            }}>
-              <Link to={dashboardPath} onClick={() => setMenuOpen(false)} style={{
-                display: "block", padding: "10px 14px", borderRadius: 8,
-                fontSize: 14, color: "var(--ink)", textDecoration: "none",
-              }}
-                onMouseEnter={e => (e.currentTarget.style.background = "var(--bg)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-              >Meu painel</Link>
-              <div style={{ height: 1, background: "var(--line)", margin: "4px 0" }} />
-              <button onClick={() => { logout(); navigate("/"); setMenuOpen(false); }} style={{
-                display: "block", width: "100%", padding: "10px 14px", borderRadius: 8,
-                fontSize: 14, color: "var(--ink-2)", background: "none", border: "none",
-                cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              }}
-                onMouseEnter={e => (e.currentTarget.style.background = "var(--bg)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-              >Sair</button>
+    <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--line)" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "10px 16px" : "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        {mob ? (
+          <>
+            <Logo />
+            <Link to={dashboardPath} style={{ display: "inline-flex", alignItems: "center", padding: 3, borderRadius: 999, border: "1px solid var(--line)", background: "var(--paper)", textDecoration: "none" }} title="Meu painel">
+              {avatarSpan}
+            </Link>
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <Logo />
+              <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
+              <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
+                <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
+                <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
+              </nav>
             </div>
-          )}
-        </div>
+            <div ref={menuRef} style={{ position: "relative" }}>
+              <button onClick={() => setMenuOpen(o => !o)} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "6px 14px 6px 6px", borderRadius: 999, border: "1px solid var(--line)", background: "var(--paper)", cursor: "pointer", fontFamily: "inherit" }}>
+                {avatarSpan}
+                <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+                  <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{firstName}</span>
+                  <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)", lineHeight: 1 }}>{roleLabel}</span>
+                </span>
+                <Chevron open={menuOpen} />
+              </button>
+              {menuOpen && (
+                <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 50, minWidth: 160, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,.08)", padding: 6 }}>
+                  <Link to={dashboardPath} onClick={() => setMenuOpen(false)} style={{ display: "block", padding: "10px 14px", borderRadius: 8, fontSize: 14, color: "var(--ink)", textDecoration: "none" }} onMouseEnter={e => (e.currentTarget.style.background = "var(--bg)")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>Meu painel</Link>
+                  <div style={{ height: 1, background: "var(--line)", margin: "4px 0" }} />
+                  <button onClick={() => { logout(); navigate("/"); setMenuOpen(false); }} style={{ display: "block", width: "100%", padding: "10px 14px", borderRadius: 8, fontSize: 14, color: "var(--ink-2)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }} onMouseEnter={e => (e.currentTarget.style.background = "var(--bg)")} onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>Sair</button>
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </header>
   );
@@ -168,19 +145,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 /* ── Page ── */
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 export default function Profile() {
   const { user, type, supplierType } = useAuth();
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);

@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { AxiosError } from "axios";
 import { validateCNPJ } from "@/utils/validate-documents";
+import { useMobile } from "@/contexts/MobileContext";
 
 function ArrowIcon({ size = 14, dir = "right" }: { size?: number; dir?: "left" | "right" }) {
   return (
@@ -168,24 +169,24 @@ function AvatarPicker({ value, onChange, onFile }: { value: string | null; onCha
   );
 }
 
-function Stepper({ step, steps }: { step: number; steps: string[] }) {
+function Stepper({ step, steps, mob }: { step: number; steps: string[]; mob: boolean }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 36 }}>
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: mob ? 8 : 16, marginBottom: 28 }}>
       {steps.map((label, i) => {
         const n = i + 1;
         const active = n === step;
         const done = n < step;
         return (
-          <div key={label} style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 999, background: done ? "var(--c-vibra)" : active ? "var(--ink)" : "var(--paper)", color: done || active ? "#fff" : "var(--ink-2)", border: `1px solid ${done ? "var(--c-vibra)" : active ? "var(--ink)" : "var(--line)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 500 }}>
-                {done ? <CheckIcon size={14} color="#fff" /> : n}
+          <div key={label} style={{ display: "flex", alignItems: "center", gap: mob ? 8 : 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: mob ? 8 : 12 }}>
+              <div style={{ width: mob ? 26 : 32, height: mob ? 26 : 32, borderRadius: 999, background: done ? "var(--c-vibra)" : active ? "var(--ink)" : "var(--paper)", color: done || active ? "#fff" : "var(--ink-2)", border: `1px solid ${done ? "var(--c-vibra)" : active ? "var(--ink)" : "var(--line)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: mob ? 11 : 13, fontWeight: 500, flexShrink: 0 }}>
+                {done ? <CheckIcon size={12} color="#fff" /> : n}
               </div>
-              <div className="mono" style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: active ? "var(--ink)" : "var(--ink-2)" }}>
-                Passo {n} · {label}
+              <div className="mono" style={{ fontSize: mob ? 10 : 11, letterSpacing: ".12em", textTransform: "uppercase", color: active ? "var(--ink)" : "var(--ink-2)" }}>
+                {mob ? label : `Passo ${n} · ${label}`}
               </div>
             </div>
-            {i < steps.length - 1 && <span style={{ width: 48, height: 1, background: "var(--line)" }} />}
+            {i < steps.length - 1 && <span style={{ width: mob ? 24 : 48, height: 1, background: "var(--line)", flexShrink: 0 }} />}
           </div>
         );
       })}
@@ -218,7 +219,7 @@ interface SupplierFormData {
   supplierType: "PRODUCER" | "ROASTER";
 }
 
-function StepConta({ data, set, errors, onNext, onPhotoFile }: { data: SupplierFormData; set: (p: Partial<SupplierFormData>) => void; errors: Record<string, string>; onNext: () => void; onPhotoFile: (f: File | null) => void }) {
+function StepConta({ data, set, errors, onNext, onPhotoFile, mob }: { data: SupplierFormData; set: (p: Partial<SupplierFormData>) => void; errors: Record<string, string>; onNext: () => void; onPhotoFile: (f: File | null) => void; mob: boolean }) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const touch = (k: string) => () => setTouched(s => ({ ...s, [k]: true }));
   const err = (k: string) => touched[k] ? errors[k] : undefined;
@@ -232,15 +233,15 @@ function StepConta({ data, set, errors, onNext, onPhotoFile }: { data: SupplierF
 
   return (
     <>
-      <h2 className="serif" style={{ fontSize: 38, lineHeight: 1.05, letterSpacing: "-.015em", margin: 0 }}>
+      <h2 className="serif" style={{ fontSize: mob ? 28 : 38, lineHeight: 1.05, letterSpacing: "-.015em", margin: 0 }}>
         {isProducer ? <>Sua <span className="italic" style={{ color: "var(--c-vibra)" }}>fazenda</span></> : <>Sua <span className="italic" style={{ color: "var(--c-vibra)" }}>torrefação</span></>}
       </h2>
-      <p style={{ fontSize: 15, color: "var(--ink-2)", marginTop: 10, marginBottom: 24 }}>
+      <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 8, marginBottom: 24 }}>
         Conte sobre o seu negócio. A aprovação acontece em até 48h úteis.
       </p>
 
       {/* Supplier type selector */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 28 }}>
         {(["ROASTER", "PRODUCER"] as const).map(t => {
           const active = data.supplierType === t;
           return (
@@ -265,7 +266,7 @@ function StepConta({ data, set, errors, onNext, onPhotoFile }: { data: SupplierF
           onChange={e => set({ company: e.target.value })} onBlur={touch("company")} style={inputStyle(!!err("company"))} />
       </Field>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, columnGap: 16, marginTop: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 16, columnGap: 16, marginTop: 14 }}>
         <Field label="Responsável" required>
           <input type="text" placeholder="Nome de quem cuida da conta" value={data.responsible}
             onChange={e => set({ responsible: e.target.value })} style={inputStyle(false)} />
@@ -283,7 +284,7 @@ function StepConta({ data, set, errors, onNext, onPhotoFile }: { data: SupplierF
           onChange={e => set({ email: e.target.value })} onBlur={touch("email")} style={inputStyle(!!err("email"))} autoComplete="email" />
       </Field>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, columnGap: 16, marginTop: 14 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 16, columnGap: 16, marginTop: 14 }}>
         <Field label="Senha" required error={err("password")}>
           <input type="password" placeholder="Mínimo 8 caracteres" value={data.password}
             onChange={e => set({ password: e.target.value })} onBlur={touch("password")} style={inputStyle(!!err("password"))} autoComplete="new-password" />
@@ -312,10 +313,10 @@ function StepConta({ data, set, errors, onNext, onPhotoFile }: { data: SupplierF
         )}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 32 }}>
-        <Link to={isProducer ? "/home/producer" : "/home/supplier"} style={{ fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}>← Voltar</Link>
+      <div style={{ display: "flex", flexDirection: mob ? "column-reverse" : "row", justifyContent: "space-between", alignItems: mob ? "stretch" : "center", marginTop: 32, gap: 12 }}>
+        <Link to={isProducer ? "/home/producer" : "/home/supplier"} style={{ fontSize: 14, color: "var(--ink-2)", textDecoration: "none", textAlign: mob ? "center" : undefined }}>← Voltar</Link>
         <button type="button" onClick={handleNext}
-          style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 24px", background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 999, fontSize: 15, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "14px 24px", background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 999, fontSize: 15, border: "none", cursor: "pointer", fontFamily: "inherit" }}>
           Continuar para endereço <ArrowIcon />
         </button>
       </div>
@@ -323,9 +324,9 @@ function StepConta({ data, set, errors, onNext, onPhotoFile }: { data: SupplierF
   );
 }
 
-function StepEndereco({ data, set, errors, onBack, onSubmit, submitting }: {
+function StepEndereco({ data, set, errors, onBack, onSubmit, submitting, mob }: {
   data: SupplierFormData; set: (p: Partial<SupplierFormData>) => void; errors: Record<string, string>;
-  onBack: () => void; onSubmit: () => void; submitting: boolean;
+  onBack: () => void; onSubmit: () => void; submitting: boolean; mob: boolean;
 }) {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [cepLoading, setCepLoading] = useState(false);
@@ -371,14 +372,14 @@ function StepEndereco({ data, set, errors, onBack, onSubmit, submitting }: {
 
   return (
     <>
-      <h2 className="serif" style={{ fontSize: 38, lineHeight: 1.05, letterSpacing: "-.015em", margin: 0 }}>
+      <h2 className="serif" style={{ fontSize: mob ? 28 : 38, lineHeight: 1.05, letterSpacing: "-.015em", margin: 0 }}>
         De onde sai o <span className="italic" style={{ color: "var(--c-vibra)" }}>café</span>?
       </h2>
-      <p style={{ fontSize: 15, color: "var(--ink-2)", marginTop: 10, marginBottom: 32 }}>
+      <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 8, marginBottom: 28 }}>
         Usamos este endereço para calcular fretes e exibir sua localização no perfil público.
       </p>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 16, columnGap: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(6, 1fr)", gap: 16, columnGap: 16 }}>
         <Field label="CEP" required span={2}
           error={err("cep") || (cepStatus === "notfound" ? "CEP não encontrado. Preencha manualmente." : undefined)}
           hint={cepStatus === "found" ? "Endereço preenchido automaticamente ✓" : (!err("cep") ? "Digite o CEP para preenchimento automático." : null)}>
@@ -392,7 +393,7 @@ function StepEndereco({ data, set, errors, onBack, onSubmit, submitting }: {
           </div>
         </Field>
 
-        <Field label="Rua" required error={err("rua")} span={3}>
+        <Field label="Rua" required error={err("rua")} span={mob ? 1 : 3}>
           <input type="text" placeholder="Nome da rua" value={data.rua}
             onChange={e => set({ rua: e.target.value })} onBlur={touch("rua")} style={inputStyle(!!err("rua"))} />
         </Field>
@@ -401,20 +402,20 @@ function StepEndereco({ data, set, errors, onBack, onSubmit, submitting }: {
             onChange={e => set({ numero: e.target.value })} onBlur={touch("numero")} style={inputStyle(!!err("numero"))} />
         </Field>
 
-        <Field label="Complemento" hint="Galpão, sítio, ponto de referência" span={3}>
+        <Field label="Complemento" hint="Galpão, sítio, ponto de referência" span={mob ? 2 : 3}>
           <input type="text" placeholder="Opcional" value={data.complemento}
             onChange={e => set({ complemento: e.target.value })} style={inputStyle(false)} />
         </Field>
-        <Field label="Bairro" required error={err("bairro")} span={3}>
+        <Field label="Bairro" required error={err("bairro")} span={mob ? 2 : 3}>
           <input type="text" placeholder="Bairro" value={data.bairro}
             onChange={e => set({ bairro: e.target.value })} onBlur={touch("bairro")} style={inputStyle(!!err("bairro"))} />
         </Field>
 
-        <Field label="Cidade" required error={err("cidade")} span={4}>
+        <Field label="Cidade" required error={err("cidade")} span={mob ? 1 : 4}>
           <input type="text" placeholder="Cidade" value={data.cidade}
             onChange={e => set({ cidade: e.target.value })} onBlur={touch("cidade")} style={inputStyle(!!err("cidade"))} />
         </Field>
-        <Field label="Estado" required error={err("uf")} span={2}>
+        <Field label="Estado" required error={err("uf")} span={1}>
           <select value={data.uf} onChange={e => set({ uf: e.target.value })} onBlur={touch("uf")} style={selectStyle}>
             <option value="">UF</option>
             {UFS.map(uf => <option key={uf} value={uf}>{uf}</option>)}
@@ -424,12 +425,12 @@ function StepEndereco({ data, set, errors, onBack, onSubmit, submitting }: {
 
       <Divider />
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 24 }}>
-        <button type="button" onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, color: "var(--ink-2)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
+      <div style={{ display: "flex", flexDirection: mob ? "column-reverse" : "row", justifyContent: "space-between", alignItems: mob ? "stretch" : "center", marginTop: 24, gap: 12 }}>
+        <button type="button" onClick={onBack} style={{ display: "inline-flex", alignItems: "center", justifyContent: mob ? "center" : undefined, gap: 8, fontSize: 14, color: "var(--ink-2)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
           <ArrowIcon dir="left" size={12} /> Voltar para conta
         </button>
         <button type="button" onClick={handleSubmit} disabled={submitting}
-          style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "14px 24px", background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 999, fontSize: 15, opacity: submitting ? 0.7 : 1, cursor: submitting ? "not-allowed" : "pointer", border: "none", fontFamily: "inherit" }}>
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "14px 24px", background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 999, fontSize: 15, opacity: submitting ? 0.7 : 1, cursor: submitting ? "not-allowed" : "pointer", border: "none", fontFamily: "inherit" }}>
           {submitting ? <><Spinner /> Enviando para aprovação…</> : <>Enviar cadastro <ArrowIcon /></>}
         </button>
       </div>
@@ -514,6 +515,7 @@ export default function RegisterSupplier() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const mob = useMobile();
 
   const set = (patch: Partial<SupplierFormData>) => setData(d => ({ ...d, ...patch }));
 
@@ -582,27 +584,27 @@ export default function RegisterSupplier() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
       {/* TopBar */}
-      <div style={{ padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
+      <div style={{ padding: mob ? "14px 16px" : "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <Logo size={22} />
-          <span style={{ padding: "3px 10px", border: "1px solid var(--ink)", borderRadius: 999, fontSize: 11, letterSpacing: ".06em" }}>Fornecedor</span>
+          {!mob && <span style={{ padding: "3px 10px", border: "1px solid var(--ink)", borderRadius: 999, fontSize: 11, letterSpacing: ".06em" }}>Fornecedor</span>}
         </div>
         <Link to="/login" style={{ fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
           Já tem conta? <span style={{ color: "var(--ink)", textDecoration: "underline" }}>Entrar</span>
         </Link>
       </div>
 
-      <main style={{ flex: 1, maxWidth: 1240, width: "100%", margin: "0 auto", padding: "40px 32px 80px", display: "grid", gridTemplateColumns: "minmax(0, 1fr) 340px", gap: 40 }}>
+      <main style={{ flex: 1, maxWidth: 1240, width: "100%", margin: "0 auto", padding: mob ? "20px 16px 60px" : "40px 32px 80px", display: "grid", gridTemplateColumns: mob ? "1fr" : "minmax(0, 1fr) 340px", gap: 40 }}>
         <div>
-          {!done && <Stepper step={step} steps={["Conta", "Endereço"]} />}
-          <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18, padding: "40px 44px", boxShadow: "0 30px 60px -40px rgba(28,8,16,.2)" }}>
+          {!done && <Stepper step={step} steps={["Conta", "Endereço"]} mob={mob} />}
+          <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18, padding: mob ? "24px 18px" : "40px 44px", boxShadow: "0 30px 60px -40px rgba(28,8,16,.2)" }}>
             {done ? (
               <Success data={data} />
             ) : step === 1 ? (
-              <StepConta data={data} set={set} errors={errors1} onPhotoFile={setPhotoFile}
+              <StepConta data={data} set={set} errors={errors1} onPhotoFile={setPhotoFile} mob={mob}
                 onNext={() => { setStep(2); window.scrollTo({ top: 0, behavior: "smooth" }); }} />
             ) : (
-              <StepEndereco data={data} set={set} errors={errors2}
+              <StepEndereco data={data} set={set} errors={errors2} mob={mob}
                 onBack={() => setStep(1)} onSubmit={submit} submitting={submitting} />
             )}
           </div>
@@ -613,10 +615,10 @@ export default function RegisterSupplier() {
           </div>
         </div>
 
-        {!done && <SummaryAside />}
+        {!done && !mob && <SummaryAside />}
       </main>
 
-      <footer style={{ padding: "20px 32px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12, fontSize: 12, color: "var(--ink-2)" }}>
+      <footer style={{ padding: mob ? "16px" : "20px 32px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12, fontSize: 12, color: "var(--ink-2)" }}>
         <span className="mono" style={{ letterSpacing: ".12em", textTransform: "uppercase" }}>© 2026 Ilé Coffees · desde 1934</span>
         <div style={{ display: "flex", gap: 18 }}>
           <a href="#" style={{ color: "inherit", textDecoration: "none" }}>Termos</a>

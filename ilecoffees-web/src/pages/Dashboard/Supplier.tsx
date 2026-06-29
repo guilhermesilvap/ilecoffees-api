@@ -1,11 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AddCoffeeForm, CoffeeInitialData } from "@/components/Dashboard/AddCoffeeForm";
 import { AddSubscriptionForm, SubscriptionInitialData } from "@/components/Dashboard/AddSubscriptionForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import OrderDetailModal from "@/components/OrderDetailModal";
+import { useMobile } from "@/contexts/MobileContext";
+import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
+import { StatCard } from "@/components/Dashboard/StatCard";
 
 type Coffee = CoffeeInitialData;
 type Subscription = SubscriptionInitialData;
@@ -68,15 +71,6 @@ interface CourseFormData {
 
 const COURSE_INITIAL: CourseFormData = { title: "", description: "", price: "", workloadHours: "", level: "BEGINNER" };
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 interface Lesson {
   id: string;
@@ -99,16 +93,6 @@ interface LessonFormData {
 
 const LESSON_INITIAL: LessonFormData = { title: "", description: "", videoUrl: "", order: "1", isLocked: false, durationMinutes: "" };
 
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <Link to="/" style={{ display: "inline-flex", alignItems: "baseline", gap: 6, textDecoration: "none", color: light ? "var(--c-leveza)" : "var(--ink)" }}>
-      <span className="script" style={{ fontSize: 40, lineHeight: 0.8 }}>íle</span>
-      <span className="serif italic" style={{ fontSize: 13, color: light ? "rgba(255,255,255,.6)" : "var(--c-vibra)" }}>coffees</span>
-    </Link>
-  );
-}
-
-
 function PackageIcon({ size = 16 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -116,19 +100,6 @@ function PackageIcon({ size = 16 }: { size?: number }) {
       <path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2" stroke="currentColor" strokeWidth="1.4" />
       <path d="M8 12h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
     </svg>
-  );
-}
-
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub: string }) {
-  return (
-    <div style={{
-      padding: "24px 28px", borderRadius: 16, background: "var(--paper)",
-      border: "1px solid var(--line)", boxShadow: "0 8px 24px -16px rgba(28,8,16,.18)",
-    }}>
-      <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>{label}</div>
-      <div className="serif" style={{ fontSize: 44, lineHeight: 1, letterSpacing: "-.02em", marginTop: 8 }}>{value}</div>
-      <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 6 }}>{sub}</div>
-    </div>
   );
 }
 
@@ -427,7 +398,7 @@ export default function SupplierDashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const mob = useIsMobile();
+  const mob = useMobile();
   const firstName = user?.name?.split(" ")[0] ?? "Torrefador";
   const lastName = user?.name?.split(" ")[1] ?? "";
   const initials = ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase();
@@ -737,7 +708,7 @@ export default function SupplierDashboard() {
           height: "100vh", overflowY: "auto",
         }}>
           <div style={{ padding: "22px 20px 14px" }}>
-            <Logo light />
+            <DashboardLogo light />
           </div>
           <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "0 16px 4px" }} />
           <div style={{ padding: "14px 16px 12px", display: "flex", alignItems: "center", gap: 10 }}>
@@ -800,7 +771,7 @@ export default function SupplierDashboard() {
         {/* Mobile: top bar */}
         {mob && (
           <header style={{ flexShrink: 0, background: "var(--c-glamour)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Logo light />
+            <DashboardLogo light />
             <button onClick={() => setMobMenuOpen(o => !o)} style={{ background: "none", border: 0, color: "var(--c-leveza)", cursor: "pointer", padding: 4 }}>
               <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -852,7 +823,7 @@ export default function SupplierDashboard() {
         {/* VISÃO GERAL */}
         {activeTab === "Visão Geral" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-            <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4, 1fr)", gap: 16 }}>
               <StatCard label="Produtos ativos" value={coffees.length} sub="cafés cadastrados" />
               <StatCard label="Pedidos pendentes" value={stats?.orders.pending ?? "—"} sub="aguardando processamento" />
               <StatCard label="Planos de assinatura" value={subscriptions.length} sub="planos cadastrados" />
@@ -928,9 +899,9 @@ export default function SupplierDashboard() {
         {/* PRODUTOS */}
         {activeTab === "Produtos" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em" }}>Meus Produtos</div>
+                <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em" }}>Meus Produtos</div>
                 <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>Gerencie seu catálogo de cafés</p>
               </div>
               <AddCoffeeForm onSuccess={loadCoffees} />
@@ -988,7 +959,7 @@ export default function SupplierDashboard() {
           const unitFor = (c: Coffee) => c.saleType === "KG" ? "kg" : "un";
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-              <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4,1fr)", gap: 16 }}>
                 <StatCard label="Produtos ativos" value={coffees.length} sub="SKUs cadastrados" />
                 <StatCard label="Com estoque" value={coffees.filter(c => (c.stock ?? 0) > 0).length} sub="produtos disponíveis" />
                 <StatCard label="Estoque baixo" value={lowStock.length} sub={`abaixo de ${LOW_STOCK_UNITS} un/kg`} />
@@ -1101,7 +1072,7 @@ export default function SupplierDashboard() {
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
                 <div>
-                  <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Estoque das Cafeterias</div>
+                  <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Estoque das Cafeterias</div>
                   <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>
                     {shops.length} cafeteria(s) · {lowShops > 0 ? `${lowShops} com estoque baixo` : "todos ok"}
                   </div>
@@ -1188,9 +1159,9 @@ export default function SupplierDashboard() {
         {/* ASSINATURAS */}
         {activeTab === "Assinaturas" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
               <div>
-                <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em" }}>Minhas Assinaturas</div>
+                <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em" }}>Minhas Assinaturas</div>
                 <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>Planos de assinatura que você oferece</p>
               </div>
               <AddSubscriptionForm onSuccess={loadSubscriptions} />
@@ -1198,20 +1169,20 @@ export default function SupplierDashboard() {
 
             <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(2, 1fr)", gap: 20 }}>
               {subscriptions.map(sub => (
-                <div key={sub.id} style={{ padding: 28, borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)" }}>
+                <div key={sub.id} style={{ padding: mob ? "20px 18px" : 28, borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
                     <div className="serif" style={{ fontSize: 26, letterSpacing: "-.01em" }}>{sub.name}</div>
                     <span className="mono" style={{ fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 999, border: "1px solid var(--ink)", color: "var(--ink)" }}>Ativa</span>
                   </div>
                   <p style={{ fontSize: 14, color: "var(--ink-2)", marginBottom: 20 }}>{sub.description}</p>
-                  <div style={{ display: "flex", gap: 24, marginBottom: 20 }}>
+                  <div style={{ display: "flex", gap: 24, marginBottom: 20, flexWrap: "wrap" as const }}>
                     <div>
                       <div style={{ fontSize: 12, color: "var(--ink-2)" }}>Mensal</div>
-                      <div className="serif" style={{ fontSize: 28, letterSpacing: "-.01em" }}>{fmt(sub.monthlyPrice)}</div>
+                      <div className="serif" style={{ fontSize: mob ? 22 : 28, letterSpacing: "-.01em", wordBreak: "break-all" }}>{fmt(sub.monthlyPrice)}</div>
                     </div>
                     <div>
                       <div style={{ fontSize: 12, color: "var(--ink-2)" }}>Anual</div>
-                      <div className="serif" style={{ fontSize: 28, letterSpacing: "-.01em" }}>{fmt(sub.annualPrice)}</div>
+                      <div className="serif" style={{ fontSize: mob ? 22 : 28, letterSpacing: "-.01em", wordBreak: "break-all" }}>{fmt(sub.annualPrice)}</div>
                     </div>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
@@ -1302,15 +1273,15 @@ export default function SupplierDashboard() {
                     ) : students.length === 0 ? (
                       <div style={{ padding: "32px 20px", textAlign: "center", fontSize: 13, color: "var(--ink-2)" }}>Nenhum aluno matriculado ainda.</div>
                     ) : (
-                      <div>
+                      <div style={{ overflowX: "auto" }}>
                         {/* Header row */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 140px 120px 120px", padding: "10px 20px", borderBottom: "1px solid var(--line)", gap: 12 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 140px 120px 120px", padding: "10px 20px", borderBottom: "1px solid var(--line)", gap: 12, minWidth: 480 }}>
                           {["Aluno", "Aulas", "Conclusão", "Última atividade"].map(h => (
                             <div key={h} className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)" }}>{h}</div>
                           ))}
                         </div>
                         {students.map((s, i) => (
-                          <div key={s.userId} style={{ display: "grid", gridTemplateColumns: "1fr 140px 120px 120px", padding: "14px 20px", borderTop: i ? "1px solid var(--line)" : undefined, gap: 12, alignItems: "center" }}>
+                          <div key={s.userId} style={{ display: "grid", gridTemplateColumns: "1fr 140px 120px 120px", padding: "14px 20px", borderTop: i ? "1px solid var(--line)" : undefined, gap: 12, alignItems: "center", minWidth: 480 }}>
                             <div>
                               <div style={{ fontSize: 14, fontWeight: 500 }}>{s.userName}</div>
                               <div style={{ fontSize: 12, color: "var(--ink-2)", marginTop: 2 }}>{s.userEmail}</div>
@@ -1351,7 +1322,7 @@ export default function SupplierDashboard() {
                   const moduleLessons = [...lessons].filter(l => getModuleNum(l.order) === moduleNum).sort((a, b) => a.order - b.order);
                   return (
                     <div key={moduleNum} style={{ borderRadius: 16, border: "1px solid var(--line)", background: "var(--paper)", overflow: "hidden" }}>
-                      <div style={{ padding: "14px 20px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-2)", gap: 12 }}>
+                      <div style={{ padding: mob ? "12px 16px" : "14px 20px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--bg-2)", gap: 12, flexWrap: "wrap" as const }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                           <span className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)", flexShrink: 0 }}>Módulo {moduleNum}</span>
                           <input
@@ -1377,11 +1348,11 @@ export default function SupplierDashboard() {
                       ) : (
                         <div style={{ display: "flex", flexDirection: "column" }}>
                           {moduleLessons.map((l, li) => (
-                            <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 20px", borderTop: li ? "1px solid var(--line)" : undefined }}>
-                              <div className="mono" style={{ fontSize: 11, letterSpacing: ".1em", color: "var(--ink-2)", flexShrink: 0, width: 20, textAlign: "center" }}>
+                            <div key={l.id} style={{ display: "flex", alignItems: mob ? "flex-start" : "center", gap: mob ? 10 : 14, padding: mob ? "12px 16px" : "14px 20px", borderTop: li ? "1px solid var(--line)" : undefined, flexWrap: mob ? "wrap" as const : undefined }}>
+                              <div className="mono" style={{ fontSize: 11, letterSpacing: ".1em", color: "var(--ink-2)", flexShrink: 0, width: 20, textAlign: "center", marginTop: mob ? 2 : 0 }}>
                                 {li + 1}
                               </div>
-                              <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ flex: mob ? "1 1 200px" : 1, minWidth: 0 }}>
                                 <div style={{ fontSize: 14, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{l.title}</div>
                                 <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap" }}>
                                   {l.durationMinutes && <span style={{ fontSize: 12, color: "var(--ink-2)" }}>{l.durationMinutes} min</span>}
@@ -1417,7 +1388,7 @@ export default function SupplierDashboard() {
               <>
                 <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
                   <div>
-                    <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em" }}>Meus Cursos</div>
+                    <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em" }}>Meus Cursos</div>
                     <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>Cursos que você oferece na plataforma</p>
                   </div>
                   <button
@@ -1483,7 +1454,7 @@ export default function SupplierDashboard() {
         {/* Modal de curso */}
         {courseModal.open && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(28,8,16,.55)", backdropFilter: "blur(4px)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-            <div style={{ background: "var(--paper)", borderRadius: 20, padding: 32, width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ background: "var(--paper)", borderRadius: 20, padding: mob ? "20px 16px" : 32, width: "100%", maxWidth: 520, maxHeight: "90vh", overflowY: "auto" }}>
               <div className="serif" style={{ fontSize: 24, letterSpacing: "-.01em", marginBottom: 24 }}>
                 {courseModal.editing ? "Editar curso" : "Novo curso"}
               </div>
@@ -1598,7 +1569,7 @@ export default function SupplierDashboard() {
         {/* Modal — form de aula */}
         {lessonModal.open && (
           <div style={{ position: "fixed", inset: 0, background: "rgba(28,8,16,.65)", backdropFilter: "blur(4px)", zIndex: 70, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-            <div style={{ background: "var(--paper)", borderRadius: 20, padding: 32, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ background: "var(--paper)", borderRadius: 20, padding: mob ? "20px 16px" : 32, width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}>
               <div className="serif" style={{ fontSize: 22, letterSpacing: "-.01em", marginBottom: 24 }}>
                 {lessonModal.editing ? "Editar aula" : `Nova aula — Módulo ${currentLessonModule}`}
               </div>
@@ -1640,7 +1611,7 @@ export default function SupplierDashboard() {
               </div>
 
               {/* Ordem e duração */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 12, marginBottom: 16 }}>
                 <div>
                   <label className="mono" style={{ display: "block", fontSize: 12, marginBottom: 6, color: "var(--ink-2)" }}>Ordem</label>
                   <input
@@ -1749,11 +1720,11 @@ export default function SupplierDashboard() {
         {activeTab === "Perfil" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 760 }}>
             <div>
-              <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em" }}>Minha Conta</div>
+              <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em" }}>Minha Conta</div>
               <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>Atualize suas informações de perfil</p>
             </div>
 
-            <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: "28px 28px 24px" }}>
+            <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: mob ? "20px 16px 16px" : "28px 28px 24px" }}>
               <div className="serif" style={{ fontSize: 20, letterSpacing: "-.01em", marginBottom: 22 }}>Informações pessoais</div>
 
               {/* Photo */}
@@ -1775,7 +1746,7 @@ export default function SupplierDashboard() {
                 </div>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 14 }}>
                 {[
                   { label: "Nome da empresa / Nome", key: "name", placeholder: "Seu nome ou razão social" },
                   { label: "CEP", key: "cep", placeholder: "00000000" },
@@ -1920,7 +1891,7 @@ export default function SupplierDashboard() {
         {activeTab === "Pedidos" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             <div>
-              <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em" }}>Pedidos</div>
+              <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em" }}>Pedidos</div>
               <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>Pedidos recebidos na plataforma</p>
             </div>
             <div style={{ borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)", overflow: "hidden" }}>
@@ -2023,7 +1994,7 @@ export default function SupplierDashboard() {
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
                 <div>
-                  <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em" }}>Relatórios e Análises</div>
+                  <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em" }}>Relatórios e Análises</div>
                   <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 4 }}>Desempenho dos seus negócios</p>
                 </div>
                 {isMock && (
@@ -2059,7 +2030,7 @@ export default function SupplierDashboard() {
       {/* Adjust stock modal */}
       {adjustModal && (
         <div style={{ position: "fixed", top: 0, right: 0, bottom: 0, left: 0, zIndex: 9999, background: "rgba(28,8,16,.55)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "var(--paper)", borderRadius: 20, padding: 32, width: "100%", maxWidth: 440 }}>
+          <div style={{ background: "var(--paper)", borderRadius: 20, padding: mob ? "20px 16px" : 32, width: "100%", maxWidth: 440 }}>
             <div className="serif" style={{ fontSize: 22, letterSpacing: "-.01em", marginBottom: 4 }}>Ajustar estoque</div>
             <div style={{ fontSize: 13, color: "var(--ink-2)", marginBottom: 24 }}>
               {adjustModal.coffee.name} · atual: {adjustModal.coffee.stock ?? 0} {adjustModal.coffee.saleType === "KG" ? "kg" : "un"}

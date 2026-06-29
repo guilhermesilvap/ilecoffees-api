@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
+import { useMobile } from "@/contexts/MobileContext";
 
 type Role = "producer" | "roaster" | "coffeeshop" | "customer";
 
@@ -6,15 +7,6 @@ interface EcosystemSectionProps {
   highlight?: Role;
 }
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 function LeafIcon() {
   return (
@@ -92,7 +84,7 @@ const NODES: { id: Role; tag: string; label: string; icon: React.ReactNode; bene
 ];
 
 export function EcosystemSection({ highlight }: EcosystemSectionProps) {
-  const mob = useIsMobile();
+  const mob = useMobile();
 
   return (
     <section style={{
@@ -242,9 +234,9 @@ export function EcosystemSection({ highlight }: EcosystemSectionProps) {
               e experiência especial para quem bebe em casa.
             </p>
           </div>
-          <div style={{ display: "flex", gap: 20, flexShrink: 0 }}>
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(4, auto)", gap: mob ? "16px 12px" : "0 20px", width: mob ? "100%" : undefined, flexShrink: 0 }}>
             {[["400+", "produtores"], ["80+", "torrefadores"], ["1.200+", "cafeterias"], ["18k+", "clientes"]].map(([n, l]) => (
-              <div key={l} style={{ textAlign: "center" }}>
+              <div key={l} style={{ textAlign: mob ? "left" : "center" }}>
                 <div className="serif" style={{ fontSize: mob ? 22 : 28, lineHeight: 1, color: "var(--c-mostarda)", letterSpacing: "-.02em" }}>{n}</div>
                 <div className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(238,243,235,.45)", marginTop: 4 }}>{l}</div>
               </div>

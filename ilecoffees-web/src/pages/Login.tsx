@@ -1,17 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 import { useAuth } from "@/contexts/AuthContext";
 import { AxiosError } from "axios";
+import { useMobile } from "@/contexts/MobileContext";
 
 function ArrowIcon({ size = 14 }: { size?: number }) {
   return (
@@ -208,7 +200,7 @@ function LoginForm() {
   const showEmailErr = touched.email ? emailErr : null;
   const showPassErr = touched.password ? passErr : null;
 
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section style={{ padding: mob ? "40px 20px 48px" : "72px 56px", display: "flex", flexDirection: "column", justifyContent: "center", minHeight: mob ? "auto" : 600 }}>
       <div style={{ maxWidth: 420, width: "100%", margin: "0 auto" }}>
@@ -302,7 +294,7 @@ function LoginForm() {
           <span style={{ flex: 1, height: 1, background: "var(--line)" }} />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 12 }}>
           <SignupCard kind="Consumidor" sub="Comprar cafés" to="/register/customer" icon={<IconCup />} />
           <SignupCard kind="Fornecedor" sub="Vender na plataforma" to="/register/supplier" icon={<IconBag />} primary />
         </div>
@@ -318,7 +310,7 @@ function LoginForm() {
 }
 
 export default function Login() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--bg)" }}>
       {/* TopBar */}

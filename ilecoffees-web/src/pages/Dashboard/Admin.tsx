@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useMobile } from "@/contexts/MobileContext";
+import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
+import { StatCard } from "@/components/Dashboard/StatCard";
 
 /* ─────────────────────────── types ─────────────────────────── */
 interface Paginated<T> { items: T[]; total: number; page: number; limit: number; totalPages: number; }
@@ -55,54 +58,8 @@ const TAB_ICONS: Record<Tab, JSX.Element> = {
 };
 
 /* ─────────────────────────── hooks ─────────────────────────── */
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 /* ─────────────────────────── shared UI ─────────────────────────── */
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <Link to="/" style={{ display: "inline-flex", alignItems: "baseline", gap: 6, textDecoration: "none", color: light ? "var(--c-leveza)" : "var(--ink)" }}>
-      <span className="script" style={{ fontSize: 40, lineHeight: 0.8 }}>íle</span>
-      <span className="serif italic" style={{ fontSize: 13, color: light ? "rgba(255,255,255,.6)" : "var(--c-vibra)" }}>coffees</span>
-    </Link>
-  );
-}
-
-function StatCard({ label, value, sub, accent, onClick }: { label: string; value: string | number; sub?: string; accent?: string; onClick?: () => void }) {
-  const [hov, setHov] = useState(false);
-  return (
-    <div
-      onClick={onClick}
-      onMouseEnter={() => onClick && setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      style={{
-        padding: "24px 28px", borderRadius: 16, background: "var(--paper)",
-        border: `1px solid ${hov ? "var(--ink-2)" : "var(--line)"}`,
-        boxShadow: hov ? "0 12px 32px -16px rgba(28,8,16,.22)" : "0 8px 24px -16px rgba(28,8,16,.18)",
-        cursor: onClick ? "pointer" : "default",
-        transition: "border-color .15s, box-shadow .15s",
-        position: "relative" as const,
-      }}
-    >
-      <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>{label}</div>
-      <div className="serif" style={{ fontSize: 44, lineHeight: 1, letterSpacing: "-.02em", marginTop: 8, color: accent ?? "var(--ink)" }}>{value}</div>
-      {sub && <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 6 }}>{sub}</div>}
-      {onClick && (
-        <div className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: hov ? "var(--ink)" : "var(--ink-3)", marginTop: 14, display: "flex", alignItems: "center", gap: 4, transition: "color .15s" }}>
-          Ver detalhes
-          <svg width={10} height={10} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </div>
-      )}
-    </div>
-  );
-}
 
 function ChartCard({ title, sub, children }: { title: string; sub?: string; children: React.ReactNode }) {
   return (
@@ -204,13 +161,14 @@ function Pagination({ page, totalPages, onChange }: { page: number; totalPages: 
 
 /* ─────────────────────────── Modal ─────────────────────────── */
 function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+  const mob = useMobile();
   if (!open) return null;
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 200, display: "flex", alignItems: "center", justifyContent: "center", padding: mob ? "0 12px" : 0 }} onClick={onClose}>
       <div style={{ position: "absolute", inset: 0, background: "rgba(15,35,21,.5)", backdropFilter: "blur(4px)" }} />
-      <div style={{ position: "relative", background: "var(--paper)", borderRadius: 18, border: "1px solid var(--line)", padding: "28px 32px", width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 32px 64px -20px rgba(15,35,21,.4)" }} onClick={e => e.stopPropagation()}>
+      <div style={{ position: "relative", background: "var(--paper)", borderRadius: 18, border: "1px solid var(--line)", padding: mob ? "20px 16px" : "28px 32px", width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto", boxShadow: "0 32px 64px -20px rgba(15,35,21,.4)" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-          <div className="serif" style={{ fontSize: 22, letterSpacing: "-.01em" }}>{title}</div>
+          <div className="serif" style={{ fontSize: mob ? 18 : 22, letterSpacing: "-.01em" }}>{title}</div>
           <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--ink-2)", fontSize: 22, lineHeight: 1, padding: "0 4px" }}>×</button>
         </div>
         {children}
@@ -226,7 +184,7 @@ export default function AdminDashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [mobMenuOpen, setMobMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>("Visão Geral");
 
@@ -528,7 +486,7 @@ export default function AdminDashboard() {
       {/* ── Sidebar desktop ── */}
       {!mob && (
         <aside style={{ width: 220, flexShrink: 0, background: "var(--c-glamour)", color: "var(--c-leveza)", display: "flex", flexDirection: "column", height: "100vh", overflowY: "auto" }}>
-          <div style={{ padding: "22px 20px 14px" }}><Logo light /></div>
+          <div style={{ padding: "22px 20px 14px" }}><DashboardLogo light /></div>
           <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "0 16px 4px" }} />
 
           {/* user info */}
@@ -574,7 +532,7 @@ export default function AdminDashboard() {
       {/* ── Mobile: top bar ── */}
       {mob && (
         <header style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 50, background: "var(--c-glamour)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Logo light />
+          <DashboardLogo light />
           <button onClick={() => setMobMenuOpen(o => !o)} style={{ background: "none", border: 0, color: "var(--c-leveza)", cursor: "pointer", padding: 4 }}>
             <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
               <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -630,13 +588,13 @@ export default function AdminDashboard() {
             <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
               {statsLoading ? <Spinner /> : stats ? (
                 <>
-                  <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4,1fr)", gap: 16 }}>
                     <StatCard label="Usuários" value={stats.users.total} sub="cadastrados" onClick={() => setActiveTab("Usuários")} />
                     <StatCard label="Fornecedores ativos" value={stats.suppliers.active} sub={`${stats.suppliers.total} no total`} onClick={() => setActiveTab("Fornecedores")} />
                     <StatCard label="Receita confirmada" value={fmt(stats.revenue.confirmed)} sub="pagamentos aprovados" accent="var(--success)" onClick={() => setRevenueModalOpen(true)} />
                     <StatCard label="Total de pedidos" value={stats.orders.total} sub="desde o início" onClick={() => setActiveTab("Pedidos")} />
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 16 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4,1fr)", gap: 16 }}>
                     <StatCard label="Cursos" value={stats.courses.total} sub={`${stats.courses.totalEnrollments} matrículas`} onClick={() => setActiveTab("Cursos")} />
                     <StatCard label="Assinaturas" value={stats.subscriptions.total} sub="planos ativos" onClick={openSubsModal} />
                     <StatCard label="Cafés cadastrados" value={stats.coffees.total} sub={stats.coffees.lowStock > 0 ? `${stats.coffees.lowStock} com estoque baixo` : "todos com estoque"} onClick={() => setActiveTab("Estoque Parceiros")} />
@@ -694,7 +652,7 @@ export default function AdminDashboard() {
           {activeTab === "Usuários" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Usuários</div>
+                <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Usuários</div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>{usersMeta.total} cadastrados</div>
               </div>
               {/* Type breakdown */}
@@ -725,15 +683,15 @@ export default function AdminDashboard() {
                   {users.map(u => {
                     const isCoffeeshop = u.accountType === "COFFEESHOP";
                     return (
-                      <div key={u.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "var(--paper)", borderRadius: 14, border: `1px solid ${isCoffeeshop ? "rgba(193,142,50,.3)" : "var(--line)"}`, gap: 16 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: isCoffeeshop ? "var(--c-mostarda)" : "var(--c-glamour)" }} />
-                          <div style={{ minWidth: 0 }}>
+                      <div key={u.id} style={{ display: "flex", flexDirection: mob ? "column" : "row", alignItems: mob ? "stretch" : "center", justifyContent: "space-between", padding: mob ? "14px 16px" : "16px 20px", background: "var(--paper)", borderRadius: 14, border: `1px solid ${isCoffeeshop ? "rgba(193,142,50,.3)" : "var(--line)"}`, gap: mob ? 10 : 16 }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: 12, minWidth: 0 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: 999, flexShrink: 0, background: isCoffeeshop ? "var(--c-mostarda)" : "var(--c-glamour)", marginTop: 5 }} />
+                          <div style={{ minWidth: 0, flex: 1 }}>
                             <div style={{ fontSize: 15, fontWeight: 500, marginBottom: 3 }}>{u.name}</div>
                             <div style={{ fontSize: 13, color: "var(--ink-2)" }}>{u.email} · {u.city}/{u.state} · <span className="mono" style={{ fontSize: 11 }}>{fmtDate(u.createdAt)}</span></div>
                           </div>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0, justifyContent: mob ? "flex-end" : "flex-start" }}>
                           <Badge color={isCoffeeshop ? "var(--c-mostarda)" : "var(--c-glamour)"}>{isCoffeeshop ? "Cafeteria" : "Consumidor"}</Badge>
                           <DangerBtn onClick={() => deleteUser(u.id)}>Remover</DangerBtn>
                         </div>
@@ -751,7 +709,7 @@ export default function AdminDashboard() {
           {activeTab === "Fornecedores" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Fornecedores</div>
+                <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Fornecedores</div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>{suppliersMeta.total} cadastrados</div>
               </div>
               {/* Type breakdown */}
@@ -825,7 +783,7 @@ export default function AdminDashboard() {
           {activeTab === "Pedidos" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               <div>
-                <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Pedidos</div>
+                <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Pedidos</div>
                 <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>{ordersMeta.total} no sistema</div>
               </div>
               {ordersLoading ? <Spinner /> : (
@@ -862,7 +820,7 @@ export default function AdminDashboard() {
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
                 <div>
-                  <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Cursos</div>
+                  <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Cursos</div>
                   <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>{courses.length} cadastrados</div>
                 </div>
               </div>
@@ -902,9 +860,9 @@ export default function AdminDashboard() {
           {/* ══ ESTOQUE PARCEIROS ══ */}
           {activeTab === "Estoque Parceiros" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
                 <div>
-                  <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Estoque dos Parceiros</div>
+                  <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Estoque dos Parceiros</div>
                   <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>
                     {partnerStock ? `${partnerStock.suppliers.length} fornecedores · ${partnerStock.coffeeshops.length} cafeterias` : "—"}
                   </div>
@@ -1045,9 +1003,9 @@ export default function AdminDashboard() {
           {/* ══ PLANOS ══ */}
           {activeTab === "Planos" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+              <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" as const }}>
                 <div>
-                  <div className="serif" style={{ fontSize: 32, letterSpacing: "-.01em", marginBottom: 4 }}>Planos de Fornecedor</div>
+                  <div className="serif" style={{ fontSize: mob ? 22 : 32, letterSpacing: "-.01em", marginBottom: 4 }}>Planos de Fornecedor</div>
                   <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", letterSpacing: ".12em" }}>{plans.length} cadastrados</div>
                 </div>
                 <PrimaryBtn onClick={openPlanCreate}>
@@ -1093,7 +1051,7 @@ export default function AdminDashboard() {
       <Modal open={revenueModalOpen} onClose={() => setRevenueModalOpen(false)} title="Detalhes de Receita">
         {stats && (
           <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 12 }}>
               {[
                 { label: "Confirmada", value: fmt(stats.revenue.confirmed), color: "#2e7244" },
                 { label: "Pendente", value: fmt(stats.revenue.pending), color: "var(--c-mostarda)" },
@@ -1101,7 +1059,7 @@ export default function AdminDashboard() {
               ].map(({ label, value, color }) => (
                 <div key={label} style={{ padding: "16px 18px", borderRadius: 12, background: "var(--bg)", border: "1px solid var(--line)" }}>
                   <div className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)" }}>{label}</div>
-                  <div className="serif" style={{ fontSize: 28, lineHeight: 1.1, letterSpacing: "-.01em", marginTop: 6, color }}>{value}</div>
+                  <div className="serif" style={{ fontSize: mob ? 22 : 28, lineHeight: 1.1, letterSpacing: "-.01em", marginTop: 6, color, wordBreak: "break-all" }}>{value}</div>
                 </div>
               ))}
             </div>
@@ -1232,7 +1190,7 @@ export default function AdminDashboard() {
             <Lbl>Descrição *</Lbl>
             <textarea value={planForm.description} onChange={e => setPlanForm(p => ({ ...p, description: e.target.value }))} rows={3} required style={{ width: "100%", padding: "11px 14px", borderRadius: 10, fontSize: 14, border: "1px solid var(--line)", background: "var(--bg)", fontFamily: "inherit", color: "var(--ink)", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 12 }}>
             <div><Lbl>Preço (R$) *</Lbl><Inp value={planForm.price} onChange={v => setPlanForm(p => ({ ...p, price: v }))} type="number" step="0.01" min="0" /></div>
             <div><Lbl>Máx. Produtos</Lbl><Inp value={planForm.maxProducts} onChange={v => setPlanForm(p => ({ ...p, maxProducts: v }))} type="number" min="1" placeholder="Ilimitado" /></div>
           </div>
@@ -1265,7 +1223,7 @@ export default function AdminDashboard() {
               <form onSubmit={addLesson} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div><Lbl>Título *</Lbl><Inp value={lessonForm.title} onChange={v => setLessonForm(p => ({ ...p, title: v }))} /></div>
                 <div><Lbl>Descrição</Lbl><Inp value={lessonForm.description} onChange={v => setLessonForm(p => ({ ...p, description: v }))} /></div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 10 }}>
                   <div><Lbl>Ordem *</Lbl><Inp value={lessonForm.order} onChange={v => setLessonForm(p => ({ ...p, order: v }))} type="number" min="1" /></div>
                   <div><Lbl>Duração (min)</Lbl><Inp value={lessonForm.durationMinutes} onChange={v => setLessonForm(p => ({ ...p, durationMinutes: v }))} type="number" min="1" /></div>
                 </div>

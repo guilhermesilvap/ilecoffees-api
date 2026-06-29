@@ -1,8 +1,9 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+﻿import { useEffect, useState, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMobile } from "@/contexts/MobileContext";
 
 interface Course {
   id: string;
@@ -121,6 +122,7 @@ function Logo() {
 function Header() {
   const { isAuthenticated, user, type, supplierType, logout } = useAuth();
   const navigate = useNavigate();
+  const mob = useMobile();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -136,101 +138,75 @@ function Header() {
   const accountType = (user as any)?.accountType ?? "CUSTOMER";
   const dashboardPath = type === "SUPPLIER" ? (supplierType === "PRODUCER" ? "/dashboard/producer" : "/dashboard/supplier") : type === "ADMIN" ? "/dashboard/admin" : accountType === "COFFEESHOP" ? "/dashboard/coffeeshop" : "/dashboard/customer";
 
+  const avatarBg = type === "SUPPLIER" ? "var(--c-glamour)" : type === "ADMIN" ? "var(--c-vibra)" : accountType === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)";
+  const avatarColor = (type === "SUPPLIER" || type === "ADMIN" || accountType === "COFFEESHOP") ? "var(--c-leveza)" : "var(--ink)";
+  const avatarSpan = (
+    <span style={{ width: 32, height: 32, borderRadius: 999, overflow: "hidden", background: avatarBg, color: avatarColor, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 11, flexShrink: 0 }}>
+      {(user as any)?.photoUrl ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : getInitials(userName)}
+    </span>
+  );
+
   return (
-    <header style={{
-      position: "sticky", top: 0, zIndex: 30,
-      background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)",
-      borderBottom: "1px solid var(--line)",
-    }}>
-      <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: "16px 32px",
-        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Logo />
-          <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
-          {accountType === "COFFEESHOP" ? (
-            <Link to="/dashboard/coffeeshop" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
-              <ArrowIcon size={12} dir="left" /> Voltar ao meu painel
-            </Link>
-          ) : (
-            <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
-              <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
-              <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
-            </nav>
-          )}
-        </div>
-
-        <div />
-
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          {isAuthenticated ? (
-            <div ref={menuRef} style={{ position: "relative" }}>
-              <button onClick={() => setMenuOpen(o => !o)} style={{
-                display: "inline-flex", alignItems: "center", gap: 10,
-                padding: "6px 12px 6px 6px", borderRadius: 999,
-                border: "1px solid var(--line)", background: "var(--paper)",
-                cursor: "pointer", fontFamily: "inherit",
-              }}>
-                <span style={{
-                  width: 32, height: 32, borderRadius: 999, overflow: "hidden",
-                  background: type === "SUPPLIER" ? "var(--c-glamour)" : type === "ADMIN" ? "var(--c-vibra)" : accountType === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)",
-                  color: (type === "SUPPLIER" || type === "ADMIN" || accountType === "COFFEESHOP") ? "var(--c-leveza)" : "var(--ink)",
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 600, fontSize: 11,
-                }}>
-                  {(user as any)?.photoUrl
-                    ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : getInitials(userName)}
-                </span>
-                <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.1 }}>
-                  <span style={{ fontSize: 13 }}>{userName.split(" ")[0]}</span>
-                  <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)" }}>
-                    {type === "SUPPLIER" ? (supplierType === "PRODUCER" ? "Produtor" : "Torrefador") : type === "ADMIN" ? "Admin" : accountType === "COFFEESHOP" ? "Cafeteria" : "Cliente"}
-                  </span>
-                </span>
-                <Chevron open={menuOpen} />
-              </button>
-              {menuOpen && (
-                <div style={{
-                  position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 40,
-                  minWidth: 200, background: "var(--paper)",
-                  border: "1px solid var(--line)", borderRadius: 14,
-                  boxShadow: "0 24px 40px -20px rgba(28,8,16,.3)", padding: 8,
-                }}>
-                  <Link to={dashboardPath} onClick={() => setMenuOpen(false)} style={{
-                    display: "flex", alignItems: "center", gap: 10, width: "100%",
-                    padding: "10px 12px", borderRadius: 8, fontSize: 14,
-                    color: "var(--ink)", textDecoration: "none",
-                  }}>
-                    Meu painel
-                  </Link>
-                  <div style={{ height: 1, background: "var(--line)", margin: "6px 0" }} />
-                  <button onClick={() => { logout(); navigate("/"); setMenuOpen(false); }} style={{
-                    display: "flex", alignItems: "center", gap: 10, width: "100%",
-                    padding: "10px 12px", borderRadius: 8, fontSize: 14,
-                    color: "#b8231a", background: "transparent", border: "none",
-                    cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                  }}>
-                    Sair
-                  </button>
-                </div>
+    <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--line)" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "10px 16px" : "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        {mob ? (
+          <>
+            <Logo />
+            {isAuthenticated ? (
+              <Link to={dashboardPath} style={{ display: "inline-flex", alignItems: "center", padding: 3, borderRadius: 999, border: "1px solid var(--line)", background: "var(--paper)", textDecoration: "none" }} title="Meu painel">
+                {avatarSpan}
+              </Link>
+            ) : (
+              <Link to="/login" style={{ padding: "7px 14px", fontSize: 13, color: "var(--ink-2)", border: "1px solid var(--line)", borderRadius: 999, textDecoration: "none" }}>Entrar</Link>
+            )}
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <Logo />
+              <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
+              {accountType === "COFFEESHOP" ? (
+                <Link to="/dashboard/coffeeshop" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
+                  <ArrowIcon size={12} dir="left" /> Voltar ao meu painel
+                </Link>
+              ) : (
+                <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
+                  <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
+                  <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
+                </nav>
               )}
             </div>
-          ) : (
-            <>
-              <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}>Entrar</Link>
-              <Link to="/register/customer" style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "10px 14px", borderRadius: 999, border: "1px solid var(--ink)", fontSize: 13,
-                textDecoration: "none", color: "var(--ink)",
-              }}>
-                Criar conta
-              </Link>
-            </>
-          )}
-        </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              {isAuthenticated ? (
+                <div ref={menuRef} style={{ position: "relative" }}>
+                  <button onClick={() => setMenuOpen(o => !o)} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "6px 12px 6px 6px", borderRadius: 999, border: "1px solid var(--line)", background: "var(--paper)", cursor: "pointer", fontFamily: "inherit" }}>
+                    {avatarSpan}
+                    <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.1 }}>
+                      <span style={{ fontSize: 13 }}>{userName.split(" ")[0]}</span>
+                      <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)" }}>
+                        {type === "SUPPLIER" ? (supplierType === "PRODUCER" ? "Produtor" : "Torrefador") : type === "ADMIN" ? "Admin" : accountType === "COFFEESHOP" ? "Cafeteria" : "Cliente"}
+                      </span>
+                    </span>
+                    <Chevron open={menuOpen} />
+                  </button>
+                  {menuOpen && (
+                    <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 40, minWidth: 200, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 14, boxShadow: "0 24px 40px -20px rgba(28,8,16,.3)", padding: 8 }}>
+                      <Link to={dashboardPath} onClick={() => setMenuOpen(false)} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 14, color: "var(--ink)", textDecoration: "none" }}>Meu painel</Link>
+                      <div style={{ height: 1, background: "var(--line)", margin: "6px 0" }} />
+                      <button onClick={() => { logout(); navigate("/"); setMenuOpen(false); }} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 14, color: "#b8231a", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>Sair</button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}>Entrar</Link>
+                  <Link to="/register/customer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 999, border: "1px solid var(--ink)", fontSize: 13, textDecoration: "none", color: "var(--ink)" }}>Criar conta</Link>
+                </>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </header>
   );
@@ -238,6 +214,7 @@ function Header() {
 
 /* ===== Cover ===== */
 function Cover({ course, idx }: { course: Course; idx: number }) {
+  const mob = useMobile();
   const bg = COVER_COLORS[idx % COVER_COLORS.length];
   const ink = COVER_INK[idx % COVER_INK.length];
   const levelLabel = LEVEL_LABELS[course.level] ?? course.level;
@@ -252,7 +229,7 @@ function Cover({ course, idx }: { course: Course; idx: number }) {
     <div style={{
       position: "relative", aspectRatio: "16 / 9", borderRadius: 18, overflow: "hidden",
       background: bg, color: textColor,
-      border: "1.5px solid var(--ink)", padding: "32px 36px",
+      border: "1.5px solid var(--ink)", padding: mob ? "16px 18px" : "32px 36px",
       boxShadow: "0 32px 64px -32px rgba(28,8,16,.35)",
       display: "flex", flexDirection: "column", justifyContent: "space-between",
     }}>
@@ -266,16 +243,17 @@ function Cover({ course, idx }: { course: Course; idx: number }) {
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(160deg, rgba(10,4,8,.72) 0%, rgba(10,4,8,.45) 55%, rgba(10,4,8,.65) 100%)" }} />
         </>
       )}
-      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", opacity: 0.8 }}>
+      <div style={{ position: "relative", zIndex: 1, display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+        <span className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", opacity: 0.8, flexShrink: 1, minWidth: 0 }}>
           íle academy · #{String(idx + 1).padStart(2, "0")}
         </span>
         <span className="mono" style={{
-          fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase",
-          padding: "5px 12px", borderRadius: 999,
+          fontSize: 10, letterSpacing: mob ? ".1em" : ".18em", textTransform: "uppercase",
+          padding: mob ? "4px 8px" : "5px 12px", borderRadius: 999,
           background: "var(--ink)", color: "var(--c-leveza)", border: "1px solid var(--ink)",
+          flexShrink: 0, whiteSpace: "nowrap",
         }}>
-          Nível {levelLabel}
+          {mob ? levelLabel : `Nível ${levelLabel}`}
         </span>
       </div>
 
@@ -293,27 +271,29 @@ function Cover({ course, idx }: { course: Course; idx: number }) {
       </div>
 
       <div style={{ maxWidth: 720, position: "relative", zIndex: 1 }}>
-        <div className="serif" style={{ fontSize: "clamp(40px, 5.5vw, 76px)", lineHeight: 0.92, letterSpacing: "-.03em" }}>
+        <div className="serif" style={{ fontSize: mob ? "clamp(22px, 6vw, 36px)" : "clamp(40px, 5.5vw, 76px)", lineHeight: 0.92, letterSpacing: "-.03em" }}>
           {firstWord} <span className="italic">{rest}</span>
         </div>
         {course.description && (
-          <div className="serif italic" style={{ fontSize: 22, marginTop: 8, opacity: 0.85 }}>
+          <div className="serif italic" style={{ fontSize: mob ? 14 : 22, marginTop: 8, opacity: 0.85, lineHeight: 1.3 }}>
             {course.description.split(".")[0]}
           </div>
         )}
       </div>
 
-      <span className="script" aria-hidden="true" style={{
-        position: "absolute", right: 24, bottom: -32, zIndex: 1,
-        fontSize: 240, lineHeight: 1, opacity: 0.15, pointerEvents: "none",
-      }}>íle</span>
+      {!mob && (
+        <span className="script" aria-hidden="true" style={{
+          position: "absolute", right: 24, bottom: -32, zIndex: 1,
+          fontSize: 240, lineHeight: 1, opacity: 0.15, pointerEvents: "none",
+        }}>íle</span>
+      )}
     </div>
   );
 }
 
 /* ===== Meta band ===== */
 function MetaBand({ course }: { course: Course }) {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const levelLabel = LEVEL_LABELS[course.level] ?? course.level;
   const items = [
     ["Nível", levelLabel],
@@ -344,6 +324,7 @@ function MetaBand({ course }: { course: Course }) {
 /* ===== Tabs ===== */
 type TabId = "DESC" | "CONTENT" | "REVIEWS" | "INSTRUCTOR";
 function Tabs({ active, onChange, lessonCount }: { active: TabId; onChange: (t: TabId) => void; lessonCount: number }) {
+  const mob = useMobile();
   const tabs: { id: TabId; label: string; sub?: string }[] = [
     { id: "DESC", label: "Descrição" },
     { id: "CONTENT", label: "Conteúdo", sub: `${lessonCount} aulas` },
@@ -351,41 +332,42 @@ function Tabs({ active, onChange, lessonCount }: { active: TabId; onChange: (t: 
     { id: "INSTRUCTOR", label: "Instrutor" },
   ];
   return (
-    <div style={{ display: "flex", gap: 0, borderBottom: "1px solid var(--line)" }}>
-      {tabs.map(t => {
-        const on = active === t.id;
-        return (
-          <button key={t.id} onClick={() => onChange(t.id)} style={{
-            padding: "16px 22px", fontSize: 14,
-            color: on ? "var(--ink)" : "var(--ink-2)",
-            borderBottom: `2px solid ${on ? "var(--c-vibra)" : "transparent"}`,
-            marginBottom: -1,
-            display: "inline-flex", alignItems: "center", gap: 8,
-            background: "none", border: "none", borderBottomWidth: 2,
-            borderBottomStyle: "solid", borderBottomColor: on ? "var(--c-vibra)" : "transparent",
-            cursor: "pointer", fontFamily: "inherit",
-          }}>
-            {t.label}
-            {t.sub && (
-              <span className="mono" style={{
-                fontSize: 10, letterSpacing: ".1em",
-                padding: "2px 7px", borderRadius: 999,
-                background: on ? "var(--ink)" : "var(--bg-2)",
-                color: on ? "var(--c-leveza)" : "var(--ink-2)",
-              }}>
-                {t.sub}
-              </span>
-            )}
-          </button>
-        );
-      })}
+    <div style={{ overflowX: "auto", borderBottom: "1px solid var(--line)" }}>
+      <div style={{ display: "flex", gap: 0, minWidth: "max-content" }}>
+        {tabs.map(t => {
+          const on = active === t.id;
+          return (
+            <button key={t.id} onClick={() => onChange(t.id)} style={{
+              padding: mob ? "12px 14px" : "16px 22px", fontSize: mob ? 13 : 14,
+              color: on ? "var(--ink)" : "var(--ink-2)",
+              marginBottom: -1,
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "none", border: "none", borderBottomWidth: 2,
+              borderBottomStyle: "solid", borderBottomColor: on ? "var(--c-vibra)" : "transparent",
+              cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+            }}>
+              {t.label}
+              {t.sub && (
+                <span className="mono" style={{
+                  fontSize: 10, letterSpacing: ".1em",
+                  padding: "2px 7px", borderRadius: 999,
+                  background: on ? "var(--ink)" : "var(--bg-2)",
+                  color: on ? "var(--c-leveza)" : "var(--ink-2)",
+                }}>
+                  {t.sub}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
 /* ===== Description tab ===== */
 function Description({ course }: { course: Course }) {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section style={{ marginTop: 32 }}>
       <h2 className="serif" style={{ margin: 0, fontSize: "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
@@ -443,8 +425,8 @@ function VideoModal({ lesson, onClose, onMarkComplete, alreadyDone, nextLesson, 
   useEffect(() => { setDone(alreadyDone ?? false); }, [alreadyDone]);
 
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    document.documentElement.style.overflow = "hidden";
+    return () => { document.documentElement.style.overflow = ""; };
   }, []);
 
   useEffect(() => {
@@ -558,7 +540,7 @@ function Content({ lessons, enrolled, selectedLesson, setSelectedLesson, onMarkC
   onMarkComplete?: (lessonId: string) => Promise<void>;
   completedIds?: Set<string>;
 }) {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const grouped = useMemo(() => {
     const chunkSize = Math.ceil(lessons.length / 3) || 4;
     const mods: { title: string; items: Lesson[] }[] = [];
@@ -707,7 +689,7 @@ function fmtRelDate(iso: string) {
 }
 
 function Reviews({ enrolled, courseId }: { enrolled: boolean; courseId: string }) {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [stars, setStars] = useState(0);
@@ -873,7 +855,7 @@ function Reviews({ enrolled, courseId }: { enrolled: boolean; courseId: string }
 
 /* ===== Instructor tab ===== */
 function Instructor() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section style={{ marginTop: 32 }}>
       <h2 className="serif" style={{ margin: 0, fontSize: "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
@@ -894,7 +876,7 @@ function Instructor() {
         </div>
         <div>
           <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--c-mostarda)" }}>Instrutor</div>
-          <div className="serif" style={{ fontSize: 44, lineHeight: 1, letterSpacing: "-.02em", marginTop: 8 }}>Pedro Henrique</div>
+          <div className="serif" style={{ fontSize: mob ? 30 : 44, lineHeight: 1, letterSpacing: "-.02em", marginTop: 8 }}>Pedro Henrique</div>
           <div className="serif italic" style={{ fontSize: 20, color: "var(--c-mostarda)", marginTop: 4 }}>Q-Grader · Mestre de Torra</div>
           <p style={{ fontSize: 15, lineHeight: 1.6, margin: "16px 0 0", opacity: 0.9, maxWidth: 560 }}>
             Q-Grader certificado pela SCA, com 12 anos torrando café para algumas das melhores cafeterias do Brasil.
@@ -934,8 +916,8 @@ function CourseCheckoutModal({ course, orderId, onSuccess, onClose }: {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    document.documentElement.style.overflow = "hidden";
+    return () => { document.documentElement.style.overflow = ""; };
   }, []);
 
   useEffect(() => {
@@ -1296,15 +1278,6 @@ function openCertificate(userName: string, courseTitle: string, workloadHours: n
 }
 
 /* ===== Page ===== */
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 export default function CourseDetails() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -1319,7 +1292,7 @@ export default function CourseDetails() {
   const [checkoutOrderId, setCheckoutOrderId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("DESC");
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
-  const mob = useIsMobile();
+  const mob = useMobile();
 
   const enrolled = !!enrollment;
   const completedCount = courseProgress?.completedLessons ?? 0;
@@ -1435,9 +1408,9 @@ export default function CourseDetails() {
 
       <main style={{
         maxWidth: 1320, margin: "0 auto", padding: mob ? "20px 16px 60px" : "28px 32px 80px",
-        display: "grid", gridTemplateColumns: mob ? "1fr" : "minmax(0, 1fr) 380px", gap: mob ? 32 : 48, alignItems: "start",
+        display: "grid", gridTemplateColumns: mob ? "minmax(0, 1fr)" : "minmax(0, 1fr) 380px", gap: mob ? 32 : 48, alignItems: "start",
       }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           <Cover course={course} idx={courseIdx} />
           <MetaBand course={course} />
 

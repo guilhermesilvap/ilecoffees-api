@@ -1,17 +1,9 @@
-import { Coffee, Store, Users, ArrowRight } from "lucide-react";
+﻿import { Coffee, Store, Users, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Logo } from "@/components/ui/logo";
+import { useMobile } from "@/contexts/MobileContext";
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 const userTypes = [
   {
@@ -51,7 +43,7 @@ const userTypes = [
 
 const UserTypeSelection = () => {
   const navigate = useNavigate();
-  const mob = useIsMobile();
+  const mob = useMobile();
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 24px" }}>

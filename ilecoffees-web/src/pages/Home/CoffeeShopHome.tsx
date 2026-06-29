@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Logo } from "@/components/ui/logo";
@@ -6,6 +6,7 @@ import { CartButton } from "@/components/Cart/CartButton";
 import { EcosystemSection } from "@/components/EcosystemSection";
 import { api } from "@/lib/api";
 import { Loader2 } from "lucide-react";
+import { useMobile } from "@/contexts/MobileContext";
 
 interface CoffeeProduct {
   id: string;
@@ -19,15 +20,6 @@ interface CoffeeProduct {
   photoUrl: string | null;
 }
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 function ArrowIcon({ size = 14 }: { size?: number }) {
   return (
@@ -107,7 +99,7 @@ const CoffeeShopHome = () => {
   const firstName = user?.name?.split(" ")[0] ?? "Usuário";
   const lastName = user?.name?.split(" ")[1] ?? "";
   const initials = ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase();
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [navOpen, setNavOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);

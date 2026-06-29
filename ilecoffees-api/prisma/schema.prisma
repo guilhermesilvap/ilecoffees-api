@@ -7,6 +7,365 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Admin {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Employee {
+  id           String               @id @default(uuid())
+  name         String
+  email        String               @unique
+  passwordHash String
+  coffeeshopId String
+  deletedAt    DateTime?
+  createdAt    DateTime             @default(now())
+  lastAccessAt DateTime?
+  photoUrl     String?
+  coffeeshop   User                 @relation(fields: [coffeeshopId], references: [id], onDelete: Cascade)
+  courseViews  EmployeeCourseView[]
+  stockLogs    EmployeeStockLog[]
+}
+
+model EmployeeStockLog {
+  id          String   @id @default(uuid())
+  employeeId  String
+  coffeeId    String
+  coffeeName  String
+  previousQty Float
+  newQty      Float
+  createdAt   DateTime @default(now())
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeCourseView {
+  id         String   @id @default(uuid())
+  employeeId String
+  courseId   String
+  courseName String
+  viewedAt   DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, courseId])
+}
+
+model SupplierPlan {
+  id          String     @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  maxProducts Int?
+  deletedAt   DateTime?
+  createdAt   DateTime   @default(now())
+  suppliers   Supplier[]
+}
+
+model Supplier {
+  id               String         @id @default(uuid())
+  photoUrl         String?
+  name             String
+  cep              String
+  street           String
+  number           String
+  district         String
+  city             String
+  state            String
+  complement       String?
+  email            String         @unique
+  passwordHash     String
+  deletedAt        DateTime?
+  createdAt        DateTime       @default(now())
+  isActive         Boolean        @default(true)
+  planId           String?
+  cnpj             String?
+  supplierType     SupplierType   @default(ROASTER)
+  mpAccessToken    String?
+  mpRefreshToken   String?
+  mpTokenExpiresAt DateTime?
+  mpUserId         String?
+  cartItems        CartItem[]
+  coffees          Coffee[]
+  courses          Course[]
+  notifications    Notification[]
+  purchases        Order[]        @relation("SupplierPurchases")
+  subscriptions    Subscription[]
+  plan             SupplierPlan?  @relation(fields: [planId], references: [id])
+}
+
+model User {
+  id                String                 @id @default(uuid())
+  photoUrl          String?
+  accountType       AccountType
+  name              String
+  email             String                 @unique
+  phoneNumber       String
+  passwordHash      String
+  cep               String
+  street            String
+  number            String
+  district          String
+  city              String
+  state             String
+  complement        String?
+  deletedAt         DateTime?
+  createdAt         DateTime               @default(now())
+  cnpj              String?
+  cpf               String?
+  cartItems         CartItem[]
+  coffeeshopStocks  CoffeeshopStock[]
+  courseEnrollments CourseEnrollment[]
+  lessonProgress    CourseLessonProgress[]
+  employees         Employee[]
+  favorites         Favorite[]
+  notifications     Notification[]
+  Order             Order[]
+  reviews           Review[]
+}
+
+model Coffee {
+  id                     String                 @id @default(uuid())
+  photoUrl               String?
+  name                   String
+  description            String
+  variety                String
+  process                String
+  region                 String
+  altitude               Int
+  saleType               SaleType               @default(KG)
+  pricePerKg             Float?
+  packagePrice           Float?
+  packageWeight          Float?
+  farm                   String
+  producer               String
+  score                  Int
+  sensory                String
+  roast                  String
+  stock                  Int?
+  supplierId             String
+  deletedAt              DateTime?
+  createdAt              DateTime               @default(now())
+  heightCm               Int?
+  lengthCm               Int?
+  weightGrams            Int?
+  widthCm                Int?
+  packagePriceCoffeeshop Float?
+  CartItem               CartItem[]
+  supplier               Supplier               @relation(fields: [supplierId], references: [id])
+  coffeeshopStocks       CoffeeshopStock[]
+  favorites              Favorite[]
+  Order                  Order[]
+  stockMovements         StockMovement[]
+  subscriptionDeliveries SubscriptionDelivery[]
+  subscriptions          Subscription[]         @relation("SubscriptionCoffees")
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  coffeeId  String
+  createdAt DateTime @default(now())
+  coffee    Coffee   @relation(fields: [coffeeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coffeeId])
+}
+
+model Subscription {
+  id                     String    @id @default(uuid())
+  name                   String
+  description            String
+  monthlyPrice           Int
+  annualPrice            Int
+  quantity               Float?
+  deletedAt              DateTime?
+  supplierId             String
+  createdAt              DateTime  @default(now())
+  coffeeshopMonthlyPrice Float?
+  coffeeshopAnnualPrice  Float?
+  Order                  Order[]
+  supplier               Supplier  @relation(fields: [supplierId], references: [id])
+  coffees                Coffee[]  @relation("SubscriptionCoffees")
+}
+
+model CartItem {
+  id         String    @id @default(uuid())
+  userId     String?
+  coffeeId   String
+  quantity   Float
+  addedAt    DateTime  @default(now())
+  supplierId String?
+  coffee     Coffee    @relation(fields: [coffeeId], references: [id])
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, coffeeId])
+  @@unique([supplierId, coffeeId])
+}
+
+model Order {
+  id                   String                 @id @default(uuid())
+  userId               String?
+  coffeeId             String?
+  subscriptionId       String?
+  quantity             Float?
+  totalPrice           Float
+  type                 OrderType              @default(ONE_TIME)
+  status               OrderStatus            @default(PENDING)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  courseId             String?
+  billingCycle         BillingCycle?
+  deliveryCep          String?
+  shippingCarrier      String?
+  shippingCost         Float?
+  shippingDeadlineDays Int?
+  pausedAt             DateTime?
+  subscriptionStatus   SubscriptionStatus?    @default(ACTIVE)
+  trackingCode         String?
+  buyerSupplierId      String?
+  buyerSupplier        Supplier?              @relation("SupplierPurchases", fields: [buyerSupplierId], references: [id])
+  coffee               Coffee?                @relation(fields: [coffeeId], references: [id])
+  course               Course?                @relation(fields: [courseId], references: [id])
+  subscription         Subscription?          @relation(fields: [subscriptionId], references: [id])
+  user                 User?                  @relation(fields: [userId], references: [id], onDelete: Restrict)
+  payment              Payment?
+  deliveries           SubscriptionDelivery[]
+}
+
+model SubscriptionDelivery {
+  id          String   @id @default(uuid())
+  orderId     String
+  coffeeId    String
+  quantity    Float
+  deliveredAt DateTime @default(now())
+  notes       String?
+  coffee      Coffee   @relation(fields: [coffeeId], references: [id])
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  orderId       String        @unique
+  amount        Float
+  method        PaymentMethod
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  externalId    String?
+  pixCopiaECola String?
+  pixExpiresAt  DateTime?
+  pixQrCode     String?
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id            String             @id @default(uuid())
+  title         String
+  description   String
+  imageUrl      String?
+  price         Float
+  workloadHours Int
+  level         CourseLevel
+  deletedAt     DateTime?
+  createdAt     DateTime           @default(now())
+  supplierId    String?
+  supplier      Supplier?          @relation(fields: [supplierId], references: [id])
+  enrollments   CourseEnrollment[]
+  lessons       CourseLesson[]
+  orders        Order[]
+}
+
+model CourseLesson {
+  id              String                 @id @default(uuid())
+  courseId        String
+  title           String
+  description     String?
+  videoUrl        String
+  order           Int
+  isLocked        Boolean                @default(true)
+  durationMinutes Int?
+  createdAt       DateTime               @default(now())
+  course          Course                 @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  progress        CourseLessonProgress[]
+}
+
+model CourseEnrollment {
+  id         String   @id @default(uuid())
+  userId     String
+  courseId   String
+  enrolledAt DateTime @default(now())
+  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model CourseLessonProgress {
+  id          String       @id @default(uuid())
+  userId      String
+  lessonId    String
+  completedAt DateTime     @default(now())
+  lesson      CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model StockMovement {
+  id        String            @id @default(uuid())
+  coffeeId  String
+  type      StockMovementType
+  delta     Float
+  reason    String?
+  orderId   String?
+  createdAt DateTime          @default(now())
+  coffee    Coffee            @relation(fields: [coffeeId], references: [id])
+}
+
+model Review {
+  id         String     @id @default(uuid())
+  userId     String
+  targetId   String
+  targetType ReviewType
+  rating     Int
+  comment    String?
+  createdAt  DateTime   @default(now())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetId, targetType])
+}
+
+model CoffeeshopStock {
+  id        String   @id @default(uuid())
+  userId    String
+  coffeeId  String
+  quantity  Float    @default(0)
+  alertAt   Float?
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  coffee    Coffee   @relation(fields: [coffeeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, coffeeId])
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  userId     String?
+  supplierId String?
+  type       String
+  title      String
+  body       String
+  data       Json?
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+  user       User?     @relation(fields: [userId], references: [id])
+}
+
 enum SaleType {
   KG
   PACKAGE
@@ -78,370 +437,4 @@ enum PaymentStatus {
 enum BillingCycle {
   MONTHLY
   ANNUAL
-}
-
-model Admin {
-  id           String   @id @default(uuid())
-  name         String
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-}
-
-model Employee {
-  id           String    @id @default(uuid())
-  name         String
-  email        String    @unique
-  passwordHash String
-  photoUrl     String?
-  coffeeshopId String
-  coffeeshop   User      @relation(fields: [coffeeshopId], references: [id], onDelete: Cascade)
-  lastAccessAt DateTime?
-  deletedAt    DateTime?
-  createdAt    DateTime  @default(now())
-
-  stockLogs   EmployeeStockLog[]
-  courseViews EmployeeCourseView[]
-}
-
-model EmployeeStockLog {
-  id           String   @id @default(uuid())
-  employeeId   String
-  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  coffeeId     String
-  coffeeName   String
-  previousQty  Float
-  newQty       Float
-  createdAt    DateTime @default(now())
-}
-
-model EmployeeCourseView {
-  id         String   @id @default(uuid())
-  employeeId String
-  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  courseId   String
-  courseName String
-  viewedAt   DateTime @default(now())
-
-  @@unique([employeeId, courseId])
-}
-
-model SupplierPlan {
-  id          String     @id @default(uuid())
-  name        String
-  description String
-  price       Float
-  maxProducts Int?
-  deletedAt   DateTime?
-  createdAt   DateTime   @default(now())
-  suppliers   Supplier[]
-}
-
-model Supplier {
-  id            String         @id @default(uuid())
-  photoUrl      String?
-  name          String
-  cnpj          String?
-  supplierType  SupplierType   @default(ROASTER)
-
-  cep          String
-  street       String
-  number       String
-  district     String
-  city         String
-  state        String
-  complement   String?
-
-  email         String         @unique
-  passwordHash  String
-  isActive      Boolean        @default(true)
-  planId        String?
-  plan          SupplierPlan?  @relation(fields: [planId], references: [id])
-  mpAccessToken    String?
-  mpRefreshToken   String?
-  mpUserId         String?
-  mpTokenExpiresAt DateTime?
-  deletedAt     DateTime?
-  createdAt     DateTime       @default(now())
-  coffees       Coffee[]
-  subscriptions Subscription[]
-  courses       Course[]
-  cartItems     CartItem[]
-  notifications Notification[]
-  purchases     Order[]        @relation("SupplierPurchases")
-}
-
-model User {
-  id           String      @id @default(uuid())
-  photoUrl     String?
-  accountType  AccountType
-  name         String
-  email        String      @unique
-  phoneNumber  String
-  passwordHash String
-  cpf          String?
-  cnpj         String?
-
-  cep          String
-  street       String
-  number       String
-  district     String
-  city         String
-  state        String
-  complement   String?
-
-  deletedAt         DateTime?
-  createdAt         DateTime           @default(now())
-  cartItems         CartItem[]
-  Order             Order[]
-  courseEnrollments CourseEnrollment[]
-  lessonProgress    CourseLessonProgress[]
-  reviews           Review[]
-  notifications     Notification[]
-  coffeeshopStocks  CoffeeshopStock[]
-  favorites         Favorite[]
-  employees         Employee[]
-}
-
-model Coffee {
-  id          String     @id @default(uuid())
-  photoUrl    String?
-  name        String
-  description String
-  variety     String
-  process     String
-  region      String
-  altitude    Int
-  saleType               SaleType @default(KG)
-  pricePerKg             Float?
-  packagePrice           Float?
-  packagePriceCoffeeshop Float?
-  packageWeight          Float?
-  farm        String
-  producer    String
-  score       Int
-  sensory     String
-  roast       String
-  stock       Int?
-  weightGrams Int?
-  heightCm    Int?
-  widthCm     Int?
-  lengthCm    Int?
-  supplierId  String
-  supplier    Supplier   @relation(fields: [supplierId], references: [id])
-  deletedAt   DateTime?
-  createdAt   DateTime   @default(now())
-  subscriptions        Subscription[]         @relation("SubscriptionCoffees")
-  CartItem             CartItem[]
-  Order                Order[]
-  stockMovements       StockMovement[]
-  coffeeshopStocks     CoffeeshopStock[]
-  favorites            Favorite[]
-  subscriptionDeliveries SubscriptionDelivery[]
-}
-
-model Favorite {
-  id        String   @id @default(uuid())
-  userId    String
-  coffeeId  String
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coffee    Coffee   @relation(fields: [coffeeId], references: [id])
-
-  @@unique([userId, coffeeId])
-}
-
-model Subscription {
-  id                     String    @id @default(uuid())
-  name                   String
-  description            String
-  monthlyPrice           Int
-  annualPrice            Int
-  coffeeshopMonthlyPrice Float?
-  coffeeshopAnnualPrice  Float?
-  createdAt              DateTime  @default(now())
-  quantity               Float?
-  deletedAt              DateTime?
-  supplierId             String
-  supplier               Supplier  @relation(fields: [supplierId], references: [id])
-  coffees                Coffee[]  @relation("SubscriptionCoffees")
-  Order                  Order[]
-}
-
-model CartItem {
-  id         String    @id @default(uuid())
-  userId     String?
-  supplierId String?
-  coffeeId   String
-  quantity   Float
-  coffee     Coffee    @relation(fields: [coffeeId], references: [id])
-  user       User?     @relation(fields: [userId], references: [id])
-  supplier   Supplier? @relation(fields: [supplierId], references: [id])
-  addedAt    DateTime  @default(now())
-
-  @@unique([userId, coffeeId])
-  @@unique([supplierId, coffeeId])
-}
-
-model Order {
-  id              String    @id @default(uuid())
-  userId          String?
-  user            User?     @relation(fields: [userId], references: [id])
-  buyerSupplierId String?
-  buyerSupplier   Supplier? @relation("SupplierPurchases", fields: [buyerSupplierId], references: [id], onDelete: SetNull)
-  coffeeId        String?
-  coffee         Coffee?       @relation(fields: [coffeeId], references: [id])
-  subscriptionId String?
-  subscription   Subscription? @relation(fields: [subscriptionId], references: [id])
-  courseId       String?
-  course         Course?       @relation(fields: [courseId], references: [id])
-  quantity       Float?
-  billingCycle   BillingCycle?
-  totalPrice           Float
-  shippingCost         Float?
-  deliveryCep          String?
-  shippingCarrier      String?
-  shippingDeadlineDays Int?
-  type                 OrderType          @default(ONE_TIME)
-  status               OrderStatus        @default(PENDING)
-  trackingCode         String?
-  subscriptionStatus   SubscriptionStatus? @default(ACTIVE)
-  pausedAt             DateTime?
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
-  payment              Payment?
-  deliveries           SubscriptionDelivery[]
-}
-
-model SubscriptionDelivery {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  coffeeId    String
-  coffee      Coffee   @relation(fields: [coffeeId], references: [id])
-  quantity    Float
-  deliveredAt DateTime @default(now())
-  notes       String?
-}
-
-model Payment {
-  id            String        @id @default(uuid())
-  orderId       String        @unique
-  order         Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  amount        Float
-  method        PaymentMethod
-  status        PaymentStatus @default(PENDING)
-  paidAt        DateTime?
-  createdAt     DateTime      @default(now())
-  externalId    String?
-  pixQrCode     String?
-  pixCopiaECola String?
-  pixExpiresAt  DateTime?
-}
-
-model Course {
-  id            String             @id @default(uuid())
-  supplierId    String?
-  supplier      Supplier?          @relation(fields: [supplierId], references: [id])
-  title         String
-  description   String
-  imageUrl      String?
-  price         Float
-  workloadHours Int
-  level         CourseLevel
-  deletedAt     DateTime?
-  createdAt     DateTime           @default(now())
-  lessons       CourseLesson[]
-  enrollments   CourseEnrollment[]
-  orders        Order[]
-}
-
-model CourseLesson {
-  id              String   @id @default(uuid())
-  courseId        String
-  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  title           String
-  description     String?
-  videoUrl        String
-  order           Int
-  isLocked        Boolean  @default(true)
-  durationMinutes Int?
-  createdAt       DateTime @default(now())
-  progress        CourseLessonProgress[]
-}
-
-model CourseEnrollment {
-  id         String   @id @default(uuid())
-  userId     String
-  courseId   String
-  enrolledAt DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course     Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, courseId])
-}
-
-model CourseLessonProgress {
-  id          String       @id @default(uuid())
-  userId      String
-  lessonId    String
-  completedAt DateTime     @default(now())
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lesson      CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, lessonId])
-}
-
-model StockMovement {
-  id        String            @id @default(uuid())
-  coffeeId  String
-  coffee    Coffee            @relation(fields: [coffeeId], references: [id])
-  type      StockMovementType
-  delta     Float
-  reason    String?
-  orderId   String?
-  createdAt DateTime          @default(now())
-}
-
-model Review {
-  id         String     @id @default(uuid())
-  userId     String
-  targetId   String
-  targetType ReviewType
-  rating     Int
-  comment    String?
-  createdAt  DateTime   @default(now())
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, targetId, targetType])
-}
-
-model CoffeeshopStock {
-  id        String   @id @default(uuid())
-  userId    String
-  coffeeId  String
-  quantity  Float    @default(0)
-  alertAt   Float?
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  coffee Coffee @relation(fields: [coffeeId], references: [id])
-
-  @@unique([userId, coffeeId])
-}
-
-model Notification {
-  id         String    @id @default(uuid())
-  userId     String?
-  supplierId String?
-  type       String
-  title      String
-  body       String
-  data       Json?
-  readAt     DateTime?
-  createdAt  DateTime  @default(now())
-
-  user     User?     @relation(fields: [userId], references: [id])
-  supplier Supplier? @relation(fields: [supplierId], references: [id])
 }

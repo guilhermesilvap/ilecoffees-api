@@ -1,16 +1,8 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { EcosystemSection } from "@/components/EcosystemSection";
+import { useMobile } from "@/contexts/MobileContext";
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 function ArrowIcon({ size = 14 }: { size?: number }) {
   return (
@@ -46,7 +38,7 @@ const NAV_LINKS: [string, string][] = [
 ];
 
 function Header() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [open, setOpen] = useState(false);
 
   return (
@@ -114,7 +106,7 @@ function Header() {
 }
 
 function Hero() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section style={{ overflow: "hidden" }}>
       <div style={{
@@ -295,7 +287,7 @@ function LinhaCard({ n, tier, name, sca, body, bg, ink, accent }: typeof LINHAS[
 }
 
 function LinhasGrid() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section id="linhas" style={{ borderTop: "1px solid var(--ink)" }}>
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: mob ? "64px 20px 48px" : "100px 40px 80px" }}>
@@ -321,7 +313,7 @@ function LinhasGrid() {
 }
 
 function Destaque() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section id="destaque" style={{ background: "var(--c-mostarda)", borderTop: "1px solid var(--ink)" }}>
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: mob ? "72px 20px" : "120px 40px" }}>
@@ -387,7 +379,7 @@ function Destaque() {
 }
 
 function Premios() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const prizes = [
     { rank: "1°", year: "2025", event: "AVPA Paris Coffee Show", title: "1º lugar — Categoria Natural", sub: "Melhor café specialty brasileiro · Paris, França" },
     { rank: "2°", year: "2025", event: "Cup of Excellence Brasil", title: "2º lugar mundial", sub: "Recorde: 95,85 pontos — a maior pontuação da história do concurso" },
@@ -430,7 +422,7 @@ function Premios() {
 }
 
 function Story() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section id="historia" style={{ background: "var(--c-mostarda)", borderTop: "1px solid var(--ink)" }}>
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: mob ? "72px 20px" : "120px 40px" }}>
@@ -476,7 +468,7 @@ function Story() {
 }
 
 function Subscription() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <section id="assinatura" style={{ background: "var(--c-vibra)", borderTop: "1px solid var(--ink)", color: "var(--c-leveza)", position: "relative", overflow: "hidden" }}>
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: mob ? "72px 20px" : "120px 40px" }}>
@@ -512,7 +504,7 @@ function FooterTag({ children }: { children: React.ReactNode }) {
 }
 
 function Footer() {
-  const mob = useIsMobile();
+  const mob = useMobile();
   return (
     <footer style={{ background: "var(--c-glamour)", color: "var(--c-leveza)", borderTop: "1px solid var(--ink)" }}>
       <div style={{ maxWidth: 1240, margin: "0 auto", padding: mob ? "48px 20px" : "64px 40px" }}>

@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
 import { api } from "@/lib/api";
 import { AxiosError } from "axios";
+import { useMobile } from "@/contexts/MobileContext";
 
 function inp(hasError = false, extra: React.CSSProperties = {}): React.CSSProperties {
   return {
@@ -210,6 +211,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
   };
 
   const tabIdx = TAB_IDS.indexOf(activeTab);
+  const mob = useMobile();
 
   return (
     <>
@@ -241,7 +243,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
             borderRadius: 18, boxShadow: "0 40px 80px -30px rgba(26,20,13,.3)",
           }}>
             {/* Modal header */}
-            <div style={{ padding: "28px 36px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ padding: mob ? "20px 16px 0" : "28px 36px 0", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
                 <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 6 }}>
                   {isEditMode ? "Editar produto" : "Novo produto"}
@@ -256,17 +258,17 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
             </div>
 
             {/* Tabs */}
-            <div style={{ display: "flex", gap: 0, padding: "20px 36px 0", borderBottom: "1px solid var(--line)" }}>
+            <div style={{ display: "flex", gap: 0, padding: mob ? "20px 16px 0" : "20px 36px 0", borderBottom: "1px solid var(--line)", overflowX: mob ? "auto" : "visible" }}>
               {TABS.map((label, i) => {
                 const id = TAB_IDS[i];
                 const active = activeTab === id;
                 return (
                   <button key={id} type="button" onClick={() => setActiveTab(id)} className="mono" style={{
-                    padding: "10px 20px", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase",
+                    padding: mob ? "10px 14px" : "10px 20px", fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase",
                     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
                     color: active ? "var(--ink)" : "var(--ink-2)",
                     borderBottom: active ? "2px solid var(--ink)" : "2px solid transparent",
-                    marginBottom: -1,
+                    marginBottom: -1, flexShrink: 0, whiteSpace: "nowrap",
                   }}>
                     {label}
                   </button>
@@ -275,7 +277,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
             </div>
 
             <form onSubmit={handleSubmit}>
-              <div style={{ padding: "28px 36px 24px" }}>
+              <div style={{ padding: mob ? "20px 16px 20px" : "28px 36px 24px" }}>
 
                 {/* Tab: Básico */}
                 {activeTab === "basic" && (
@@ -314,7 +316,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
                       <textarea value={formData.description} onChange={e => hc("description", e.target.value)} placeholder="Descreva as características e origem do seu café..." rows={4} style={{ ...inp(), resize: "vertical" as const }} />
                     </Fld>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "1fr 1fr 1fr", gap: 16 }}>
                       <Fld label="Fazenda" required>
                         <input type="text" value={formData.farm} onChange={e => hc("farm", e.target.value)} placeholder="Nome da fazenda" style={inp()} />
                       </Fld>
@@ -331,7 +333,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
                 {/* Tab: Características */}
                 {activeTab === "product" && (
                   <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "1fr 1fr 1fr", gap: 16 }}>
                       <Fld label="Processamento" required>
                         <select value={formData.process} onChange={e => hc("process", e.target.value)} style={selectStyle()}>
                           <option value="">Selecione</option>
@@ -411,7 +413,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
                     )}
 
                     {(formData.saleType === "PACKAGE" || formData.saleType === "BOTH") && (
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "1fr 1fr 1fr", gap: 16 }}>
                         <Fld label="Preço pacote — Cliente Final (R$)" required>
                           <input type="number" step="0.01" value={formData.packagePrice} onChange={e => hc("packagePrice", e.target.value)} placeholder="Ex: 24.90" style={inp()} />
                         </Fld>
@@ -432,7 +434,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
                     <p style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 0, marginBottom: 20 }}>
                       Informações necessárias para cálculo de frete.
                     </p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 16 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "1fr 1fr 1fr 1fr", gap: 16 }}>
                       <Fld label="Peso (g)" required>
                         <input type="number" step="1" min="1" value={formData.weightGrams} onChange={e => hc("weightGrams", e.target.value)} style={inp()} />
                       </Fld>
@@ -451,7 +453,7 @@ export function AddCoffeeForm({ onSuccess, initialCoffee, lockedSaleType, locked
               </div>
 
               {/* Footer */}
-              <div style={{ padding: "20px 36px 28px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div style={{ padding: mob ? "16px 16px 20px" : "20px 36px 28px", borderTop: "1px solid var(--line)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <button type="button" onClick={() => setIsOpen(false)} style={{ fontSize: 14, color: "var(--ink-2)", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
                   Cancelar
                 </button>

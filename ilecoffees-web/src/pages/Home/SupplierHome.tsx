@@ -1,17 +1,9 @@
-import { Link, useNavigate } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { EcosystemSection } from "@/components/EcosystemSection";
+import { useMobile } from "@/contexts/MobileContext";
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 function ArrowIcon({ size = 14 }: { size?: number }) {
   return (
@@ -98,7 +90,7 @@ const QUICK_ACTIONS = [
 export default function SupplierHome() {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [menuOpen, setMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);

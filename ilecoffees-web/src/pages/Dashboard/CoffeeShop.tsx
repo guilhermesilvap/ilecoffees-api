@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { CartButton } from "@/components/Cart/CartButton";
 import OrderDetailModal from "@/components/OrderDetailModal";
+import { useMobile } from "@/contexts/MobileContext";
+
 
 interface CoffeeItem {
   id: string;
@@ -165,6 +167,7 @@ function DropdownItem({ icon, label, danger, onClick }: { icon: React.ReactNode;
 }
 
 function DashHeader({ userName, photoUrl, onLogout, onNavigate }: { userName: string; photoUrl?: string | null; onLogout: () => void; onNavigate: (tab: TabId) => void }) {
+  const mob = useMobile();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const initial = getInitials(userName);
@@ -179,7 +182,7 @@ function DashHeader({ userName, photoUrl, onLogout, onNavigate }: { userName: st
 
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--line)" }}>
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "16px 32px", display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24 }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "12px 16px" : "16px 32px", display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24 }}>
         <button onClick={() => onNavigate("HOME")} style={{ display: "inline-flex", alignItems: "baseline", gap: 6, background: "none", border: "none", cursor: "pointer", padding: 0, color: "inherit" }}>
           <span className="script" style={{ fontSize: 36, lineHeight: 0.75 }}>íle</span>
           <span className="serif italic" style={{ fontSize: 13, lineHeight: 1, color: "var(--c-vibra)" }}>coffees</span>
@@ -218,17 +221,34 @@ function Sidebar({ active, setActive, ordersBadge, userName, userEmail, memberSi
   ordersBadge: number;
   userName: string; userEmail: string; memberSince: string; photoUrl?: string | null;
 }) {
+  const mob = useMobile();
   const initial = getInitials(userName);
-  const items: { id: TabId; label: string; icon: React.ReactNode; badge?: number }[] = [
-    { id: "HOME",         label: "Início",          icon: <IconHome /> },
-    { id: "CATALOG",      label: "Catálogo B2B",    icon: <IconCoffee /> },
-    { id: "ORDERS",       label: "Meus Pedidos",    icon: <IconBox />, badge: ordersBadge || undefined },
-    { id: "SUBSCRIPTION", label: "Assinaturas",     icon: <IconRepeat /> },
-    { id: "COURSES",      label: "Cursos",          icon: <IconBook /> },
-    { id: "STOCK",        label: "Estoque",         icon: <IconStock /> },
-    { id: "FUNCIONARIOS", label: "Funcionários",    icon: <IconTeam /> },
-    { id: "PROFILE",      label: "Meu Perfil",      icon: <IconUser /> },
+  const items: { id: TabId; label: string; short: string; icon: React.ReactNode; badge?: number }[] = [
+    { id: "HOME",         label: "Início",       short: "Início",      icon: <IconHome /> },
+    { id: "CATALOG",      label: "Catálogo B2B", short: "Catálogo",    icon: <IconCoffee /> },
+    { id: "ORDERS",       label: "Meus Pedidos", short: "Pedidos",     icon: <IconBox />, badge: ordersBadge || undefined },
+    { id: "SUBSCRIPTION", label: "Assinaturas",  short: "Assinaturas", icon: <IconRepeat /> },
+    { id: "COURSES",      label: "Cursos",       short: "Cursos",      icon: <IconBook /> },
+    { id: "STOCK",        label: "Estoque",      short: "Estoque",     icon: <IconStock /> },
+    { id: "FUNCIONARIOS", label: "Funcionários", short: "Equipe",      icon: <IconTeam /> },
+    { id: "PROFILE",      label: "Meu Perfil",   short: "Perfil",      icon: <IconUser /> },
   ];
+
+  if (mob) {
+    return (
+      <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, marginBottom: 16, scrollbarWidth: "none", borderBottom: "1px solid var(--line)", minWidth: 0 }}>
+        {items.map(it => {
+          const on = active === it.id;
+          return (
+            <button key={it.id} onClick={() => setActive(it.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 999, fontSize: 13, border: "none", cursor: "pointer", flexShrink: 0, fontFamily: "inherit", background: on ? "var(--ink)" : "var(--bg-2)", color: on ? "var(--c-leveza)" : "var(--ink-2)" }}>
+              {it.icon}{it.short}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <aside style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18, padding: 22, position: "sticky", top: 96, alignSelf: "flex-start", display: "flex", flexDirection: "column", gap: 22 }}>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 14 }}>
@@ -349,6 +369,7 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 function OrdersTable({ orders, onOpen }: { orders: Order[]; onOpen?: (o: Order) => void }) {
+  const mob = useMobile();
   if (orders.length === 0) {
     return (
       <div style={{ padding: "48px 24px", textAlign: "center", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16 }}>
@@ -362,6 +383,29 @@ function OrdersTable({ orders, onOpen }: { orders: Order[]; onOpen?: (o: Order) 
   }
   const productLabel = (o: Order) =>
     o.coffee?.name ?? o.course?.title ?? o.subscription?.name ?? "—";
+
+  if (mob) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {orders.map(o => (
+          <div key={o.id} onClick={() => onOpen?.(o)} style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 14, padding: "16px 18px", cursor: onOpen ? "pointer" : "default" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 10 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{productLabel(o)}</div>
+                <div className="mono" style={{ fontSize: 11, color: "var(--ink-2)", marginTop: 3 }}>#{o.id.slice(0, 7).toUpperCase()} · {fmtDate(o.createdAt)}</div>
+              </div>
+              <StatusBadge status={o.status} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="serif" style={{ fontSize: 18 }}>{fmt(o.totalPrice)}</span>
+              <span style={{ color: "var(--ink-2)" }}><Arrow size={12} /></span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, overflow: "hidden" }}>
       <div style={{ display: "grid", gridTemplateColumns: "110px 1fr 130px 120px auto", padding: "12px 20px", background: "var(--bg-2)", borderBottom: "1px solid var(--line)" }}>
@@ -597,6 +641,7 @@ export default function CoffeeShopDashboard() {
   const activeOrders    = orders.filter(o => ["PAID", "PROCESSING", "SHIPPED"].includes(o.status));
   const activeSubs      = orders.filter(o => o.type === "SUBSCRIPTION" && o.status === "PAID");
 
+  const mob = useMobile();
   const userName    = user?.name ?? "Cafeteria";
   const memberSince = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString("pt-BR", { month: "long", year: "numeric" })
@@ -607,7 +652,7 @@ export default function CoffeeShopDashboard() {
       {selectedOrder && <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />}
       <DashHeader userName={userName} photoUrl={user?.photoUrl as string | null} onLogout={() => { logout(); navigate("/"); }} onNavigate={goTab} />
 
-      <main style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 32px 80px", display: "grid", gridTemplateColumns: "280px 1fr", gap: 28, alignItems: "start" }}>
+      <main style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "16px 16px 80px" : "32px 32px 80px", display: "grid", gridTemplateColumns: mob ? "minmax(0, 1fr)" : "280px 1fr", gap: mob ? 0 : 28, alignItems: "start" }}>
         <Sidebar
           active={active} setActive={goTab}
           ordersBadge={activeOrders.length}
@@ -615,7 +660,7 @@ export default function CoffeeShopDashboard() {
           memberSince={memberSince} photoUrl={user?.photoUrl as string | null}
         />
 
-        <div>
+        <div style={{ minWidth: 0 }}>
           {loading ? (
             <div style={{ display: "flex", justifyContent: "center", paddingTop: 80 }}>
               <div className="mono" style={{ fontSize: 12, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--ink-2)" }}>Carregando…</div>
@@ -626,7 +671,7 @@ export default function CoffeeShopDashboard() {
               {active === "HOME" && (
                 <>
                   <Welcome userName={userName} />
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 36 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3, 1fr)", gap: mob ? 12 : 18, marginBottom: 36 }}>
                     <SummaryCard
                       eyebrow="Pedidos ativos"
                       value={String(activeOrders.length)}
@@ -798,7 +843,7 @@ export default function CoffeeShopDashboard() {
                           const isKg = item.coffee?.saleType === "KG";
                           const unit = isKg ? "kg" : "pct";
                           return (
-                            <div key={item.coffeeId} style={{ background: "var(--paper)", border: `1px solid ${isLow ? "var(--c-vibra)" : "var(--line)"}`, borderRadius: 16, padding: "20px 22px", display: "grid", gridTemplateColumns: "52px 1fr auto", gap: 16, alignItems: "center" }}>
+                            <div key={item.coffeeId} style={{ background: "var(--paper)", border: `1px solid ${isLow ? "var(--c-vibra)" : "var(--line)"}`, borderRadius: 16, padding: "20px 22px", display: "grid", gridTemplateColumns: mob ? "52px 1fr" : "52px 1fr auto", gap: 16, alignItems: "center" }}>
                               <div style={{ width: 52, height: 52, borderRadius: 10, overflow: "hidden", background: "var(--bg-2)", flexShrink: 0 }}>
                                 {item.coffee?.photoUrl
                                   ? <img src={item.coffee.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -835,7 +880,7 @@ export default function CoffeeShopDashboard() {
                                   )}
                                 </div>
                               </div>
-                              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
+                              <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: mob ? "flex-start" : "flex-end", gridColumn: mob ? "1 / -1" : undefined }}>
                                 <button onClick={() => handleStockSave(item.coffeeId)}
                                   disabled={saving || exceedsStock || edit.baixa === "" || baixaVal <= 0}
                                   style={{ padding: "8px 16px", borderRadius: 999, background: "var(--ink)", color: "var(--c-leveza)", border: "none", fontSize: 13, cursor: (saving || exceedsStock || edit.baixa === "" || baixaVal <= 0) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (saving || exceedsStock || edit.baixa === "" || baixaVal <= 0) ? 0.4 : 1, whiteSpace: "nowrap" }}>
@@ -886,7 +931,7 @@ export default function CoffeeShopDashboard() {
                     {/* Add employee form */}
                     <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: "24px 26px", marginBottom: 28 }}>
                       <div className="serif" style={{ fontSize: 20, letterSpacing: "-.01em", marginBottom: 18 }}>Cadastrar funcionário</div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: 12, alignItems: "flex-end" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr 1fr auto", gap: 12, alignItems: "flex-end" }}>
                         {[
                           { label: "Nome", key: "name", placeholder: "Nome completo", type: "text" },
                           { label: "E-mail", key: "email", placeholder: "email@cafeteria.com", type: "email" },
@@ -929,7 +974,7 @@ export default function CoffeeShopDashboard() {
                           return (
                             <div key={emp.id} style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, overflow: "hidden" }}>
                               {/* Employee header row */}
-                              <div style={{ display: "grid", gridTemplateColumns: "44px 1fr auto auto", gap: 14, padding: "18px 20px", alignItems: "center" }}>
+                              <div style={{ display: "grid", gridTemplateColumns: mob ? "44px 1fr auto" : "44px 1fr auto auto", gap: 14, padding: mob ? "14px 16px" : "18px 20px", alignItems: "center" }}>
                                 <span style={{ width: 44, height: 44, borderRadius: 999, background: hasAccess ? "var(--c-glamour)" : "var(--bg-2)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 600, color: hasAccess ? "var(--c-leveza)" : "var(--ink-3)", flexShrink: 0, overflow: "hidden" }}>
                                   {emp.photoUrl
                                     ? <img src={emp.photoUrl} alt={emp.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -984,7 +1029,7 @@ export default function CoffeeShopDashboard() {
 
                               {/* Activity panels */}
                               {(emp.courseViews.length > 0 || emp.stockLogs.length > 0) && (
-                                <div style={{ borderTop: "1px solid var(--line)", display: "grid", gridTemplateColumns: emp.courseViews.length > 0 && emp.stockLogs.length > 0 ? "1fr 1fr" : "1fr" }}>
+                                <div style={{ borderTop: "1px solid var(--line)", display: "grid", gridTemplateColumns: !mob && emp.courseViews.length > 0 && emp.stockLogs.length > 0 ? "1fr 1fr" : "1fr" }}>
                                   {/* Course views */}
                                   {emp.courseViews.length > 0 && (
                                     <div style={{ padding: "14px 20px", borderRight: emp.stockLogs.length > 0 ? "1px solid var(--line)" : "none" }}>
@@ -1047,8 +1092,8 @@ export default function CoffeeShopDashboard() {
                       Meu <span className="italic" style={{ color: "var(--c-vibra)" }}>perfil</span>.
                     </h1>
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, maxWidth: 780 }}>
-                    <div style={{ gridColumn: "1 / -1", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: "28px 28px 24px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 20, maxWidth: 780 }}>
+                    <div style={{ gridColumn: "1 / -1", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: mob ? "20px 16px" : "28px 28px 24px" }}>
                       <div className="serif" style={{ fontSize: 22, letterSpacing: "-.01em", marginBottom: 22 }}>Editar informações</div>
                       <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 22, paddingBottom: 22, borderBottom: "1px solid var(--line)" }}>
                         <div style={{ width: 72, height: 72, borderRadius: 999, flexShrink: 0, overflow: "hidden", background: "var(--c-glamour)", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid var(--line)" }}>
@@ -1064,7 +1109,7 @@ export default function CoffeeShopDashboard() {
                           <div style={{ fontSize: 12, color: "var(--ink-2)" }}>{profilePhoto ? profilePhoto.name : "JPG, PNG ou WEBP"}</div>
                         </div>
                       </div>
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 14 }}>
                         {[
                           { label: "Nome completo", key: "name", placeholder: "Seu nome" },
                           { label: "Telefone", key: "phoneNumber", placeholder: "(11) 99999-9999" },

@@ -1,6 +1,8 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link } from "react-router-dom";
+import { useMobile } from "@/contexts/MobileContext";
+
 
 export interface OrderDetailData {
   id: string;
@@ -71,6 +73,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
 }) {
   const [confirming, setConfirming] = useState(false);
   const [canceling, setCanceling] = useState(false);
+  const mob = useMobile();
 
   const canCancel = !!onCancel && order.status !== "CANCELED" && order.status !== "DELIVERED";
 
@@ -108,34 +111,57 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
   const orderType = order.type ? (ORDER_TYPE[order.type] ?? order.type) : null;
 
   const content = (
+    <>
+      <style>{`
+        @keyframes orderSlideUp {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
+      `}</style>
     <div
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(8,18,12,.55)", backdropFilter: "blur(4px)",
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "20px",
+        background: mob ? "rgba(8,18,12,.45)" : "rgba(8,18,12,.55)", backdropFilter: "blur(4px)",
+        display: "flex",
+        alignItems: mob ? "flex-end" : "center",
+        justifyContent: "center",
+        padding: mob ? 0 : "20px",
       }}
     >
       <div
         onClick={e => e.stopPropagation()}
-        style={{
+        style={mob ? {
+          background: "var(--bg)", border: "1px solid var(--line)",
+          borderRadius: "18px 18px 0 0", borderBottom: "none",
+          width: "100%", maxHeight: "90vh", overflowY: "auto",
+          boxShadow: "0 -8px 40px rgba(0,0,0,.22)",
+          display: "flex", flexDirection: "column",
+          animation: "orderSlideUp .22s cubic-bezier(.2,.8,.4,1)",
+        } : {
           background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 20,
           width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto",
           boxShadow: "0 24px 60px rgba(0,0,0,.22)",
           display: "flex", flexDirection: "column",
         }}
       >
+        {/* Drag handle — mobile only */}
+        {mob && (
+          <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", flexShrink: 0 }} onClick={onClose}>
+            <div style={{ width: 36, height: 4, borderRadius: 999, background: "var(--line)" }} />
+          </div>
+        )}
+
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px 24px 18px", borderBottom: "1px solid var(--line)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: mob ? "8px 16px 14px" : "22px 24px 18px", borderBottom: "1px solid var(--line)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <span className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>Pedido</span>
-            <span className="serif" style={{ fontSize: 22, lineHeight: 1 }}>#{order.id.slice(0, 8).toUpperCase()}</span>
+            <span className="serif" style={{ fontSize: mob ? 18 : 22, lineHeight: 1 }}>#{order.id.slice(0, 8).toUpperCase()}</span>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "6px 14px", borderRadius: 999, fontSize: 13,
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: mob ? "5px 10px" : "6px 14px", borderRadius: 999, fontSize: mob ? 11 : 13,
               background: statusCfg.bg, color: statusCfg.color,
             }}>
               <span style={{ width: 6, height: 6, borderRadius: 999, background: statusCfg.color, flexShrink: 0 }} />
@@ -143,7 +169,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
             </span>
             <button
               onClick={onClose}
-              style={{ width: 32, height: 32, borderRadius: 999, border: "1px solid var(--line)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-2)", flexShrink: 0 }}
+              style={{ width: 30, height: 30, borderRadius: 999, border: "1px solid var(--line)", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--ink-2)", flexShrink: 0 }}
               aria-label="Fechar"
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
@@ -152,7 +178,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
         </div>
 
         {/* Product */}
-        <div style={{ padding: "18px 24px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ padding: mob ? "14px 16px" : "18px 24px", borderBottom: "1px solid var(--line)", display: "flex", alignItems: "center", gap: 14 }}>
           <div style={{ width: 56, height: 56, borderRadius: 12, overflow: "hidden", background: "var(--bg-2)", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
             {productImage
               ? <img src={productImage} alt={productName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -167,7 +193,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
         </div>
 
         {/* Details */}
-        <div style={{ padding: "6px 24px 4px" }}>
+        <div style={{ padding: mob ? "6px 16px 4px" : "6px 24px 4px" }}>
           <Row label="Data" value={fmtDate(order.createdAt)} />
           <Row label="Total" value={<span className="serif" style={{ fontSize: 18 }}>{fmt(order.totalPrice)}</span>} />
           {order.quantity != null && (
@@ -219,7 +245,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
 
         {/* Tracking */}
         {order.trackingCode && (
-          <div style={{ margin: "4px 24px 0", padding: "14px 18px", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div style={{ margin: mob ? "4px 16px 0" : "4px 24px 0", padding: "14px 16px", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <div>
               <div className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 4 }}>Código de rastreio</div>
               <span className="mono" style={{ fontSize: 14, letterSpacing: ".06em" }}>{order.trackingCode}</span>
@@ -235,7 +261,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
         )}
 
         {/* Footer */}
-        <div style={{ padding: "18px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ padding: mob ? "16px" : "18px 24px", display: "flex", flexDirection: "column", gap: 10 }}>
           {canCancel && !confirming && (
             <button
               onClick={() => setConfirming(true)}
@@ -278,6 +304,7 @@ export default function OrderDetailModal({ order, onClose, onCancel }: {
         </div>
       </div>
     </div>
+    </>
   );
 
   return createPortal(content, document.body);

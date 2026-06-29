@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { EcosystemSection } from "@/components/EcosystemSection";
 import { useNavigate, Link, NavLink } from "react-router-dom";
 import { Logo } from "@/components/ui/logo";
@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import heroImage from "@/assets/hero-coffee.jpg";
+import { useMobile } from "@/contexts/MobileContext";
 
 interface CoffeeProduct {
   id: string;
@@ -31,15 +32,6 @@ interface Supplier {
   state?: string | null;
 }
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 function ArrowIcon({ size = 14 }: { size?: number }) {
   return (
@@ -71,7 +63,7 @@ const CustomerHome = () => {
   const firstName = user?.name?.split(" ")[0] ?? "";
   const lastName = user?.name?.split(" ")[1] ?? "";
   const initials = ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase();
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [navOpen, setNavOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -256,7 +248,7 @@ const CustomerHome = () => {
               </Link>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: mob ? 10 : 14 }}>
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(4, 1fr)", gap: mob ? 10 : 14 }}>
               {suppliers.map((s) => {
                 const initials2 = s.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
                 const typeLabel = s.supplierType === "ROASTER" ? "Torrefador" : s.supplierType === "PRODUCER" ? "Produtor" : s.supplierType;

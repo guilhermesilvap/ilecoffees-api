@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
+import { useMobile } from "@/contexts/MobileContext";
 
 const MP_PUBLIC_KEY = import.meta.env.VITE_MP_PUBLIC_KEY as string | undefined;
 
@@ -33,15 +34,6 @@ function loadMpScript(): Promise<void> {
   });
 }
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -293,7 +285,7 @@ function PixScreen({ pix, orderId, onClose, refresh, navigate }: {
   const [timeLeft, setTimeLeft] = useState(() => {
     return Math.max(0, Math.floor((new Date(pix.expiresAt).getTime() - Date.now()) / 1000));
   });
-  const mob = useIsMobile();
+  const mob = useMobile();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Countdown
@@ -427,7 +419,7 @@ export function Checkout({ onClose, onBack }: CheckoutProps) {
   const isCoffeeshop = user?.accountType === "COFFEESHOP";
   const isRoaster = authType === "SUPPLIER" && supplierType === "ROASTER";
   const ordersEndpoint = isRoaster ? "/supplier/b2b/orders" : "/orders";
-  const mob = useIsMobile();
+  const mob = useMobile();
 
   const [step, setStep] = useState<Step>("shipping");
   const [paymentMethod, setPaymentMethod] = useState("credit-card");

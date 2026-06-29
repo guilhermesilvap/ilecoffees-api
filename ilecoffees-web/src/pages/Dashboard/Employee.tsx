@@ -1,7 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMobile } from "@/contexts/MobileContext";
+
 
 interface StockItem {
   userId: string;
@@ -68,6 +70,7 @@ function DropdownItem({ icon, label, danger, onClick }: { icon: React.ReactNode;
 }
 
 function DashHeader({ userName, onLogout }: { userName: string; onLogout: () => void }) {
+  const mob = useMobile();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const initial = getInitials(userName);
@@ -82,7 +85,7 @@ function DashHeader({ userName, onLogout }: { userName: string; onLogout: () => 
 
   return (
     <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--line)" }}>
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "16px 32px", display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24 }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "12px 16px" : "16px 32px", display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24 }}>
         <Link to="/" style={{ display: "inline-flex", alignItems: "baseline", gap: 6, textDecoration: "none", color: "inherit" }}>
           <span className="script" style={{ fontSize: 36, lineHeight: 0.75 }}>íle</span>
           <span className="serif italic" style={{ fontSize: 13, lineHeight: 1, color: "var(--c-vibra)" }}>coffees</span>
@@ -112,11 +115,27 @@ function Sidebar({ active, setActive, userName, userEmail }: {
   active: TabId; setActive: (t: TabId) => void;
   userName: string; userEmail: string;
 }) {
+  const mob = useMobile();
   const initial = getInitials(userName);
   const items: { id: TabId; label: string; icon: React.ReactNode }[] = [
     { id: "STOCK",   label: "Estoque",  icon: <IconStock /> },
     { id: "COURSES", label: "Cursos",   icon: <IconBook />  },
   ];
+
+  if (mob) {
+    return (
+      <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, marginBottom: 16, scrollbarWidth: "none", borderBottom: "1px solid var(--line)" }}>
+        {items.map(it => {
+          const on = active === it.id;
+          return (
+            <button key={it.id} onClick={() => setActive(it.id)} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 999, fontSize: 13, border: "none", cursor: "pointer", flexShrink: 0, fontFamily: "inherit", background: on ? "var(--ink)" : "var(--bg-2)", color: on ? "var(--c-leveza)" : "var(--ink-2)" }}>
+              {it.icon}{it.label}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
 
   return (
     <aside style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18, padding: 22, position: "sticky", top: 96, alignSelf: "flex-start", display: "flex", flexDirection: "column", gap: 22 }}>
@@ -230,14 +249,16 @@ export default function EmployeeDashboard() {
     }
   }
 
+  const mob = useMobile();
+
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }}>
       <DashHeader userName={empName} onLogout={() => { logout(); navigate("/"); }} />
 
-      <main style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 32px 80px", display: "grid", gridTemplateColumns: "280px 1fr", gap: 28, alignItems: "start" }}>
+      <main style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "16px 16px 80px" : "32px 32px 80px", display: "grid", gridTemplateColumns: mob ? "minmax(0, 1fr)" : "280px 1fr", gap: mob ? 0 : 28, alignItems: "start" }}>
         <Sidebar active={active} setActive={setActive} userName={empName} userEmail={empEmail} />
 
-        <div>
+        <div style={{ minWidth: 0 }}>
           {/* STOCK */}
           {active === "STOCK" && (
             <>
@@ -272,7 +293,7 @@ export default function EmployeeDashboard() {
                     const saving = stockSaving[item.coffeeId];
                     const unit = item.coffee?.saleType === "KG" ? "kg" : "pct";
                     return (
-                      <div key={item.coffeeId} style={{ background: "var(--paper)", border: `1px solid ${isLow ? "var(--c-vibra)" : "var(--line)"}`, borderRadius: 16, padding: "20px 22px", display: "grid", gridTemplateColumns: "52px 1fr auto", gap: 16, alignItems: "center" }}>
+                      <div key={item.coffeeId} style={{ background: "var(--paper)", border: `1px solid ${isLow ? "var(--c-vibra)" : "var(--line)"}`, borderRadius: 16, padding: "20px 22px", display: "grid", gridTemplateColumns: mob ? "52px 1fr" : "52px 1fr auto", gap: 16, alignItems: "center" }}>
                         <div style={{ width: 52, height: 52, borderRadius: 10, overflow: "hidden", background: "var(--bg-2)", flexShrink: 0 }}>
                           {item.coffee?.photoUrl
                             ? <img src={item.coffee.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -298,7 +319,7 @@ export default function EmployeeDashboard() {
                         </div>
                         <button onClick={() => handleStockSave(item.coffeeId)}
                           disabled={saving || exceedsStock || edit.baixa === "" || baixaVal <= 0}
-                          style={{ padding: "8px 16px", borderRadius: 999, background: "var(--ink)", color: "var(--c-leveza)", border: "none", fontSize: 13, cursor: (saving || exceedsStock || edit.baixa === "" || baixaVal <= 0) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (saving || exceedsStock || edit.baixa === "" || baixaVal <= 0) ? 0.4 : 1, whiteSpace: "nowrap" }}>
+                          style={{ padding: "8px 16px", borderRadius: 999, background: "var(--ink)", color: "var(--c-leveza)", border: "none", fontSize: 13, cursor: (saving || exceedsStock || edit.baixa === "" || baixaVal <= 0) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (saving || exceedsStock || edit.baixa === "" || baixaVal <= 0) ? 0.4 : 1, whiteSpace: "nowrap", gridColumn: mob ? "1 / -1" : undefined, justifySelf: mob ? "flex-start" : undefined }}>
                           {saving ? "Salvando…" : "Registrar baixa"}
                         </button>
                       </div>

@@ -1,7 +1,9 @@
-import { useEffect } from "react";
+﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "@/contexts/CartContext";
+
 import { Cart } from "./Cart";
+import { useMobile } from "@/contexts/MobileContext";
 
 function BagIcon() {
   return (
@@ -15,6 +17,7 @@ function BagIcon() {
 export function CartButton() {
   const navigate = useNavigate();
   const { count, refresh, isCartOpen, openCart, closeCart } = useCart();
+  const mob = useMobile();
 
   useEffect(() => { refresh(); }, [refresh]);
 
@@ -25,7 +28,7 @@ export function CartButton() {
         style={{
           position: "relative",
           display: "inline-flex", alignItems: "center", gap: 7,
-          padding: "8px 14px", borderRadius: 999,
+          padding: mob ? "8px 10px" : "8px 14px", borderRadius: 999,
           border: "1px solid var(--line)", background: "var(--paper)",
           color: "var(--ink)", cursor: "pointer", fontFamily: "inherit",
           fontSize: 14, transition: "border-color .15s, background .15s",
@@ -45,7 +48,7 @@ export function CartButton() {
             {count}
           </span>
         )}
-        {count === 0 && (
+        {count === 0 && !mob && (
           <span style={{ fontSize: 13, color: "var(--ink-2)" }}>Carrinho</span>
         )}
       </button>

@@ -3,6 +3,7 @@ import { Link, NavLink, useSearchParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import { useMobile } from "@/contexts/MobileContext";
 import { Cart } from "@/components/Cart/Cart";
 
 interface Coffee {
@@ -129,7 +130,7 @@ const SUPPLIER_TAB_ICONS: Record<SupplierTab, JSX.Element> = {
 };
 
 /* ===== Header ===== */
-function UserMenu({ dashboardPath }: { dashboardPath: string }) {
+function UserMenu({ dashboardPath, mob }: { dashboardPath: string; mob: boolean }) {
   const { user, type, supplierType, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -163,6 +164,36 @@ function UserMenu({ dashboardPath }: { dashboardPath: string }) {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
+  const avatarSpan = (
+    <span style={{
+      width: 34, height: 34, borderRadius: 999, flexShrink: 0, overflow: "hidden",
+      background: avatarBg, color: avatarColor,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      fontSize: 12, fontWeight: 600, letterSpacing: ".02em",
+    }}>
+      {(user as any)?.photoUrl
+        ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        : (initials || "?")}
+    </span>
+  );
+
+  if (mob) {
+    return (
+      <Link
+        to={dashboardPath}
+        style={{
+          display: "inline-flex", alignItems: "center",
+          padding: "3px", borderRadius: 999,
+          border: "1px solid var(--line)", background: "var(--paper)",
+          textDecoration: "none",
+        }}
+        title="Meu painel"
+      >
+        {avatarSpan}
+      </Link>
+    );
+  }
+
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
@@ -175,16 +206,7 @@ function UserMenu({ dashboardPath }: { dashboardPath: string }) {
           cursor: "pointer", fontFamily: "inherit",
         }}
       >
-        <span style={{
-          width: 34, height: 34, borderRadius: 999, flexShrink: 0, overflow: "hidden",
-          background: avatarBg, color: avatarColor,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 12, fontWeight: 600, letterSpacing: ".02em",
-        }}>
-          {(user as any)?.photoUrl
-            ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : (initials || "?")}
-        </span>
+        {avatarSpan}
         <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
           <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{firstName}</span>
           <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)", lineHeight: 1 }}>{roleLabel}</span>
@@ -233,7 +255,7 @@ function UserMenu({ dashboardPath }: { dashboardPath: string }) {
   );
 }
 
-function Header({ cartCount, q, onQ, onCartOpen }: { cartCount: number; q: string; onQ: (v: string) => void; onCartOpen: () => void }) {
+function Header({ cartCount, q, onQ, onCartOpen, mob }: { cartCount: number; q: string; onQ: (v: string) => void; onCartOpen: () => void; mob: boolean }) {
   const { isAuthenticated, type, user } = useAuth();
   const accountType = (user as any)?.accountType ?? "CUSTOMER";
   const { supplierType: supType } = useAuth();
@@ -249,87 +271,137 @@ function Header({ cartCount, q, onQ, onCartOpen }: { cartCount: number; q: strin
       background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)",
       borderBottom: "1px solid var(--line)",
     }}>
-      <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: "16px 32px",
-        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Logo />
-          <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
-          <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
-            {type !== "SUPPLIER" && <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>}
-            {type !== "SUPPLIER" && <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>}
-          </nav>
-        </div>
-
-        <div style={{
-          maxWidth: 480, margin: "0 auto", width: "100%",
-          display: "flex", alignItems: "center", gap: 10,
-          padding: "10px 16px", borderRadius: 999,
-          background: "var(--paper)", border: "1px solid var(--line)", color: "var(--ink-2)",
-        }}>
-          <SearchIcon />
-          <input
-            type="text"
-            placeholder="Buscar por café, região ou processo…"
-            value={q}
-            onChange={e => onQ(e.target.value)}
-            style={{ flex: 1, border: 0, outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "inherit" }}
-          />
-          <span className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", opacity: 0.6 }}>⌘K</span>
-        </div>
-
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          {isAuthenticated ? (
-            <UserMenu dashboardPath={dashboardPath} />
-          ) : (
-            <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)" }}>Entrar</Link>
-          )}
-          <button
-            type="button"
-            onClick={onCartOpen}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 8,
-              padding: "8px 14px", borderRadius: 999,
-              border: "1px solid var(--line)", background: "var(--paper)",
-              color: "var(--ink)", cursor: "pointer", fontFamily: "inherit",
-              fontSize: 14, position: "relative",
-              transition: "border-color .15s",
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ink)"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--line)"; }}
-            aria-label={`Carrinho — ${cartCount} ${cartCount === 1 ? "item" : "itens"}`}
-          >
-            <CartIcon />
-            {cartCount > 0 ? (
-              <span className="mono" style={{
-                fontSize: 10, letterSpacing: ".1em",
-                padding: "2px 7px", borderRadius: 999,
-                background: "var(--c-vibra)", color: "#fff", lineHeight: 1.4,
-              }}>
-                {cartCount}
-              </span>
-            ) : (
-              <span style={{ fontSize: 13, color: "var(--ink-2)" }}>Carrinho</span>
-            )}
-          </button>
-        </div>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "10px 16px" : "16px 32px" }}>
+        {mob ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* Mobile row 1: Logo + actions */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Logo />
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {isAuthenticated ? (
+                  <UserMenu dashboardPath={dashboardPath} mob={mob} />
+                ) : (
+                  <Link to="/login" style={{ padding: "7px 14px", fontSize: 13, color: "var(--ink-2)", border: "1px solid var(--line)", borderRadius: 999, textDecoration: "none" }}>Entrar</Link>
+                )}
+                <button
+                  type="button"
+                  onClick={onCartOpen}
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "8px 12px", borderRadius: 999,
+                    border: "1px solid var(--line)", background: "var(--paper)",
+                    color: "var(--ink)", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 14, position: "relative",
+                  }}
+                  aria-label={`Carrinho — ${cartCount} ${cartCount === 1 ? "item" : "itens"}`}
+                >
+                  <CartIcon />
+                  {cartCount > 0 && (
+                    <span className="mono" style={{
+                      fontSize: 10, padding: "2px 6px", borderRadius: 999,
+                      background: "var(--c-vibra)", color: "#fff", lineHeight: 1.4,
+                    }}>
+                      {cartCount}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+            {/* Mobile row 2: Search bar full width */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "9px 14px", borderRadius: 999,
+              background: "var(--paper)", border: "1px solid var(--line)", color: "var(--ink-2)",
+            }}>
+              <SearchIcon />
+              <input
+                type="text"
+                placeholder="Buscar café…"
+                value={q}
+                onChange={e => onQ(e.target.value)}
+                style={{ flex: 1, border: 0, outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "inherit" }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <Logo />
+              <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
+              <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
+                {type !== "SUPPLIER" && <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>}
+                {type !== "SUPPLIER" && <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>}
+              </nav>
+            </div>
+            <div style={{
+              maxWidth: 480, margin: "0 auto", width: "100%",
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 16px", borderRadius: 999,
+              background: "var(--paper)", border: "1px solid var(--line)", color: "var(--ink-2)",
+            }}>
+              <SearchIcon />
+              <input
+                type="text"
+                placeholder="Buscar por café, região ou processo…"
+                value={q}
+                onChange={e => onQ(e.target.value)}
+                style={{ flex: 1, border: 0, outline: "none", background: "transparent", fontSize: 14, fontFamily: "inherit", color: "inherit" }}
+              />
+              <span className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", opacity: 0.6 }}>⌘K</span>
+            </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              {isAuthenticated ? (
+                <UserMenu dashboardPath={dashboardPath} />
+              ) : (
+                <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)" }}>Entrar</Link>
+              )}
+              <button
+                type="button"
+                onClick={onCartOpen}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 8,
+                  padding: "8px 14px", borderRadius: 999,
+                  border: "1px solid var(--line)", background: "var(--paper)",
+                  color: "var(--ink)", cursor: "pointer", fontFamily: "inherit",
+                  fontSize: 14, position: "relative",
+                  transition: "border-color .15s",
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--ink)"; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--line)"; }}
+                aria-label={`Carrinho — ${cartCount} ${cartCount === 1 ? "item" : "itens"}`}
+              >
+                <CartIcon />
+                {cartCount > 0 ? (
+                  <span className="mono" style={{
+                    fontSize: 10, letterSpacing: ".1em",
+                    padding: "2px 7px", borderRadius: 999,
+                    background: "var(--c-vibra)", color: "#fff", lineHeight: 1.4,
+                  }}>
+                    {cartCount}
+                  </span>
+                ) : (
+                  <span style={{ fontSize: 13, color: "var(--ink-2)" }}>Carrinho</span>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
 }
 
 /* ===== Page header ===== */
-function PageHeader() {
+function PageHeader({ mob }: { mob: boolean }) {
   return (
     <section style={{ borderBottom: "1px solid var(--line)" }}>
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "56px 32px 36px" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "28px 16px 20px" : "56px 32px 36px" }}>
         <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
           <span style={{ color: "var(--c-vibra)" }}>§</span> &nbsp; Catálogo · safra 2026
         </div>
         <div style={{ marginTop: 14 }}>
-          <h1 className="serif" style={{ margin: 0, fontSize: "clamp(56px, 8vw, 128px)", lineHeight: 0.9, letterSpacing: "-.03em" }}>
+          <h1 className="serif" style={{ margin: 0, fontSize: "clamp(40px, 8vw, 128px)", lineHeight: 0.9, letterSpacing: "-.03em" }}>
             Nossos <span className="italic" style={{ color: "var(--c-vibra)" }}>cafés</span>.
           </h1>
         </div>
@@ -393,13 +465,16 @@ function SegControl({ value, onChange, options }: { value: string; onChange: (v:
 }
 
 /* ===== Filters sidebar ===== */
-function Filters({ filters, setFilters, total, regions, role }: {
+function Filters({ filters, setFilters, total, regions, role, mob }: {
   filters: Filters;
   setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   total: number;
   regions: string[];
   role: "COFFEESHOP" | "CUSTOMER" | "VISITOR" | "ROASTER";
+  mob: boolean;
 }) {
+  const [mobOpen, setMobOpen] = useState(false);
+
   function toggleRegion(r: string) {
     setFilters(f => {
       const s = new Set(f.regions);
@@ -411,25 +486,18 @@ function Filters({ filters, setFilters, total, regions, role }: {
     setFilters({ q: "", regions: [], sale: "ALL", minPrice: 0, maxPrice: 999 });
   }
   const hasActive = filters.q || filters.regions.length || filters.sale !== "ALL" || filters.minPrice > 0 || filters.maxPrice < 999;
+  const activeCount = Number(!!filters.q) + filters.regions.length + Number(filters.sale !== "ALL") + Number(filters.minPrice > 0) + Number(filters.maxPrice < 999);
 
   const saleOptions = role === "CUSTOMER"
     ? [{ value: "ALL", label: "Todos" }, { value: "PACKAGE", label: "Pacote" }]
     : [{ value: "ALL", label: "Todos" }, { value: "PACKAGE", label: "Pacote" }, { value: "KG", label: "KG" }];
 
-  return (
-    <aside style={{
-      position: "sticky", top: 96, alignSelf: "flex-start",
-      background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18,
-      padding: 24, display: "flex", flexDirection: "column", gap: 24,
-      boxShadow: "0 24px 48px -36px rgba(28,8,16,.2)",
-    }}>
+  const body = (
+    <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
         <div className="serif" style={{ fontSize: 24, letterSpacing: "-.01em" }}>Filtros</div>
         {hasActive && (
-          <button type="button" onClick={reset} className="mono" style={{
-            fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--c-vibra)",
-            border: 0, background: "none", cursor: "pointer",
-          }}>
+          <button type="button" onClick={reset} className="mono" style={{ fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--c-vibra)", border: 0, background: "none", cursor: "pointer" }}>
             Limpar
           </button>
         )}
@@ -442,11 +510,7 @@ function Filters({ filters, setFilters, total, regions, role }: {
             placeholder="Ex.: Crema Brûlée"
             value={filters.q}
             onChange={e => setFilters(f => ({ ...f, q: e.target.value }))}
-            style={{
-              width: "100%", padding: "11px 14px 11px 38px",
-              border: "1px solid var(--line)", borderRadius: 10, fontSize: 14, outline: "none",
-              background: "var(--bg)", fontFamily: "inherit", color: "inherit", boxSizing: "border-box",
-            }}
+            style={{ width: "100%", padding: "11px 14px 11px 38px", border: "1px solid var(--line)", borderRadius: 10, fontSize: 14, outline: "none", background: "var(--bg)", fontFamily: "inherit", color: "inherit", boxSizing: "border-box" }}
           />
           <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--ink-2)" }}>
             <SearchIcon size={14} />
@@ -471,24 +535,15 @@ function Filters({ filters, setFilters, total, regions, role }: {
       <FilterSection title={`Faixa de preço · R$ ${filters.minPrice}–${filters.maxPrice}`}>
         <div style={{ paddingTop: 6 }}>
           <div style={{ position: "relative", height: 4, background: "var(--bg-2)", borderRadius: 999 }}>
-            <div style={{
-              position: "absolute",
-              left: `${(filters.minPrice / 999) * 100}%`,
-              right: `${100 - (filters.maxPrice / 999) * 100}%`,
-              top: 0, bottom: 0, background: "var(--ink)", borderRadius: 999,
-            }} />
+            <div style={{ position: "absolute", left: `${(filters.minPrice / 999) * 100}%`, right: `${100 - (filters.maxPrice / 999) * 100}%`, top: 0, bottom: 0, background: "var(--ink)", borderRadius: 999 }} />
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 14 }}>
-            <input
-              type="number" min="0" max={filters.maxPrice} value={filters.minPrice}
+            <input type="number" min="0" max={filters.maxPrice} value={filters.minPrice}
               onChange={e => setFilters(f => ({ ...f, minPrice: Math.min(Number(e.target.value), f.maxPrice) }))}
-              style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 13, background: "var(--bg)", outline: "none", fontFamily: "inherit" }}
-            />
-            <input
-              type="number" min={filters.minPrice} max="999" value={filters.maxPrice}
+              style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 13, background: "var(--bg)", outline: "none", fontFamily: "inherit" }} />
+            <input type="number" min={filters.minPrice} max="999" value={filters.maxPrice}
               onChange={e => setFilters(f => ({ ...f, maxPrice: Math.max(Number(e.target.value), f.minPrice) }))}
-              style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 13, background: "var(--bg)", outline: "none", fontFamily: "inherit" }}
-            />
+              style={{ padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 8, fontSize: 13, background: "var(--bg)", outline: "none", fontFamily: "inherit" }} />
           </div>
         </div>
       </FilterSection>
@@ -499,12 +554,36 @@ function Filters({ filters, setFilters, total, regions, role }: {
           {total} <span style={{ fontSize: 16, color: "var(--ink-2)" }}>cafés encontrados</span>
         </div>
       </div>
+    </>
+  );
+
+  if (mob) {
+    return (
+      <div style={{ marginBottom: 4 }}>
+        <button type="button" onClick={() => setMobOpen(o => !o)} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "12px 16px", borderRadius: 12, border: "1px solid var(--line)", background: "var(--paper)", cursor: "pointer", fontFamily: "inherit" }}>
+          <span className="serif" style={{ fontSize: 18 }}>Filtros{activeCount > 0 ? ` (${activeCount})` : ""}</span>
+          <svg width={14} height={14} viewBox="0 0 14 10" fill="none" style={{ transform: `rotate(${mobOpen ? 180 : 0}deg)`, transition: "transform .15s", color: "var(--ink-2)" }}>
+            <path d="M1 1l6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
+        {mobOpen && (
+          <div style={{ marginTop: 8, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18, padding: 20, display: "flex", flexDirection: "column", gap: 20 }}>
+            {body}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <aside style={{ position: "sticky", top: 96, alignSelf: "flex-start", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18, padding: 24, display: "flex", flexDirection: "column", gap: 24, boxShadow: "0 24px 48px -36px rgba(28,8,16,.2)" }}>
+      {body}
     </aside>
   );
 }
 
 /* ===== Coffee card ===== */
-function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: number) => void; role: "COFFEESHOP" | "CUSTOMER" | "VISITOR" | "ROASTER" }) {
+function CoffeeCard({ c, onAdd, role, mob }: { c: Coffee; onAdd: (c: Coffee, qty: number) => void; role: "COFFEESHOP" | "CUSTOMER" | "VISITOR" | "ROASTER"; mob: boolean }) {
   const line = getLine(c.score);
   const lineBg   = LINE_BG[line];
   const lineBg2  = LINE_BG2[line];
@@ -533,8 +612,8 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
   return (
     <article
       style={{
-        borderRadius: 18, background: lineBg, border: `1px solid ${lineBorder}`,
-        padding: 16, display: "flex", flexDirection: "column", gap: 14,
+        borderRadius: 14, background: lineBg, border: `1px solid ${lineBorder}`,
+        padding: mob ? 10 : 16, display: "flex", flexDirection: "column", gap: mob ? 8 : 14,
         color: lineInk,
         boxShadow: "0 16px 32px -28px rgba(28,8,16,.3)",
         transition: "transform .12s, box-shadow .12s",
@@ -550,10 +629,11 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
     >
       {/* Product image / bag mock */}
       <div style={{
-        position: "relative", aspectRatio: "1 / 1.05", borderRadius: 12,
+        position: "relative", aspectRatio: mob ? "4 / 3" : "1 / 1.05", borderRadius: 10,
         background: lineBg2,
         overflow: "hidden", border: `1px solid ${lineBorder}`,
-        padding: 18, display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: mob ? 10 : 18, display: "flex", flexDirection: "column", justifyContent: "space-between",
+        transform: "translateZ(0)",
       }}>
         {c.photoUrl ? (
           <img
@@ -564,30 +644,34 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
         ) : (
           <>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-              <span className="script" style={{ fontSize: 36, lineHeight: 0.8, color: lineAccent }}>íle</span>
-              <span className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: lineInk2 }}>
-                {c.saleType === "KG" ? "granel" : c.saleType === "PACKAGE" ? "250g" : "KG + Pacote"}
-              </span>
+              <span className="script" style={{ fontSize: mob ? 22 : 36, lineHeight: 0.8, color: lineAccent }}>íle</span>
+              {!mob && (
+                <span className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: lineInk2 }}>
+                  {c.saleType === "KG" ? "granel" : c.saleType === "PACKAGE" ? "250g" : "KG + Pacote"}
+                </span>
+              )}
             </div>
             <div>
               <div className="mono" style={{ fontSize: 9, letterSpacing: ".18em", textTransform: "uppercase", color: lineAccent }}>
                 {line}
               </div>
-              <div className="serif" style={{ fontSize: 26, lineHeight: 0.95, letterSpacing: "-.015em", marginTop: 4, color: lineInk }}>
+              <div className="serif" style={{ fontSize: mob ? 12 : 26, lineHeight: 0.95, letterSpacing: "-.015em", marginTop: 4, color: lineInk, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {c.name}
               </div>
             </div>
           </>
         )}
-        <span className="mono" style={{
-          position: "absolute", top: 10, right: 10,
-          fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase",
-          padding: "4px 8px", borderRadius: 999,
-          background: "rgba(0,0,0,.35)", color: lineInk,
-          backdropFilter: "blur(4px)",
-        }}>
-          {c.saleType === "KG" ? "Por kg" : c.saleType === "PACKAGE" ? "Pacote" : "KG + Pacote"}
-        </span>
+        {!mob && (
+          <span className="mono" style={{
+            position: "absolute", top: 10, right: 10,
+            fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase",
+            padding: "4px 8px", borderRadius: 999,
+            background: "rgba(0,0,0,.35)", color: lineInk,
+            backdropFilter: "blur(4px)",
+          }}>
+            {c.saleType === "KG" ? "Por kg" : c.saleType === "PACKAGE" ? "Pacote" : "KG + Pacote"}
+          </span>
+        )}
         {saving !== null && (
           <span className="mono" style={{
             position: "absolute", bottom: 10, left: 10,
@@ -602,48 +686,51 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
         {/* Supplier badge */}
         {c.supplier && (
           <div style={{
-            position: "absolute", top: 10, left: 10,
-            display: "flex", alignItems: "center", gap: 6,
+            position: "absolute", top: 8, left: 8,
+            display: "flex", alignItems: "center", gap: mob ? 0 : 6,
             background: "rgba(15,35,20,.72)", backdropFilter: "blur(6px)",
-            borderRadius: 999, padding: "4px 10px 4px 4px",
+            borderRadius: 999, padding: mob ? "3px" : "4px 10px 4px 4px",
             border: "1px solid rgba(255,255,255,.12)",
           }}>
             <span style={{
-              width: 22, height: 22, borderRadius: 999, flexShrink: 0,
+              width: mob ? 18 : 22, height: mob ? 18 : 22, borderRadius: 999, flexShrink: 0,
               overflow: "hidden", background: "var(--c-mostarda)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 8, fontWeight: 700, color: "var(--ink)", letterSpacing: ".02em",
+              fontSize: 7, fontWeight: 700, color: "var(--ink)", letterSpacing: ".02em",
             }}>
               {c.supplier.photoUrl
                 ? <img src={c.supplier.photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : c.supplier.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase()
               }
             </span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,.90)", fontWeight: 500, letterSpacing: ".01em", whiteSpace: "nowrap", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis" }}>
-              {c.supplier.name}
-            </span>
+            {!mob && (
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,.90)", fontWeight: 500, letterSpacing: ".01em", whiteSpace: "nowrap", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis" }}>
+                {c.supplier.name}
+              </span>
+            )}
           </div>
         )}
       </div>
 
       {/* Info */}
       <div>
-        <div className="serif" style={{ fontSize: 22, lineHeight: 1.1, letterSpacing: "-.01em" }}>{c.name}</div>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}>
-          <span style={{ fontSize: 13, color: lineInk2 }}>{c.region ?? "Brasil"}</span>
+        <div className="serif" style={{ fontSize: mob ? 15 : 22, lineHeight: 1.1, letterSpacing: "-.01em", overflow: mob ? "hidden" : undefined, textOverflow: mob ? "ellipsis" : undefined, whiteSpace: mob ? "nowrap" : undefined }}>{c.name}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: mob ? 2 : 4 }}>
+          <span style={{ fontSize: mob ? 11 : 13, color: lineInk2 }}>{c.region ?? "Brasil"}</span>
           {c.score && (
             <span className="mono" style={{
-              fontSize: 11, letterSpacing: ".08em",
-              padding: "3px 8px", borderRadius: 999,
+              fontSize: mob ? 9 : 11, letterSpacing: ".08em",
+              padding: mob ? "2px 6px" : "3px 8px", borderRadius: 999,
               background: "rgba(0,0,0,.18)", color: lineAccent,
+              whiteSpace: "nowrap", flexShrink: 0,
             }}>
-              {c.score} pts SCA
+              {c.score} pts
             </span>
           )}
         </div>
       </div>
 
-      {c.description && (
+      {!mob && c.description && (
         <p className="serif italic" style={{ margin: 0, fontSize: 14, lineHeight: 1.3, color: lineInk2 }}>
           {c.description}
         </p>
@@ -661,7 +748,7 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
                     R$ {c.packagePrice!.toFixed(2).replace(".", ",")}
                   </div>
                 )}
-                <div className="serif" style={{ fontSize: 26, lineHeight: 1, letterSpacing: "-.01em" }}>
+                <div className="serif" style={{ fontSize: mob ? 18 : 26, lineHeight: 1, letterSpacing: "-.01em" }}>
                   R$ {price.toFixed(2).replace(".", ",")}
                 </div>
                 <div className="mono" style={{ fontSize: 10, letterSpacing: ".12em", color: lineInk2, marginTop: 4, textTransform: "uppercase" }}>
@@ -674,13 +761,13 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
           </div>
           {/* Detalhes sempre visível aqui à direita */}
           <Link to={`/product/${c.id}`} style={{
-            padding: "8px 12px", borderRadius: 999,
+            padding: mob ? "6px 10px" : "8px 12px", borderRadius: 999,
             border: `1px solid ${lineBorder}`,
             background: "rgba(0,0,0,.15)",
-            fontSize: 12, color: lineInk, textDecoration: "none",
+            fontSize: mob ? 11 : 12, color: lineInk, textDecoration: "none",
             flexShrink: 0,
           }}>
-            Detalhes
+            {mob ? "Ver" : "Detalhes"}
           </Link>
         </div>
 
@@ -751,12 +838,13 @@ function CoffeeCard({ c, onAdd, role }: { c: Coffee; onAdd: (c: Coffee, qty: num
             onClick={() => onAdd(c, 1)}
             style={{
               display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
-              padding: "10px 14px", borderRadius: 999, width: "100%",
-              background: lineAccent, color: line === "Origens" ? "#fff" : "var(--c-barro)", fontSize: 12,
+              padding: mob ? "9px 10px" : "10px 14px", borderRadius: 999, width: "100%",
+              background: lineAccent, color: line === "Origens" ? "#fff" : "var(--c-barro)", fontSize: mob ? 11 : 12,
               border: 0, cursor: "pointer", fontFamily: "inherit", fontWeight: 600,
             }}
           >
-            <span style={{ fontSize: 14, lineHeight: 1 }}>+</span> Adicionar ao carrinho
+            <span style={{ fontSize: mob ? 13 : 14, lineHeight: 1 }}>+</span>
+            {mob ? "Adicionar" : "Adicionar ao carrinho"}
           </button>
         )}
       </div>
@@ -874,16 +962,6 @@ function ErrorToast({ message, onClose }: { message: string | null; onClose: () 
 }
 
 /* ===== Page ===== */
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
-
 export default function CatalogPage() {
   const { user, isAuthenticated, type: authType, supplierType: authSupplierType, logout } = useAuth();
   const { count: cartCount, addItem } = useCart();
@@ -891,7 +969,7 @@ export default function CatalogPage() {
   const linhaParam = searchParams.get("linha") ?? "";
   const navigate = useNavigate();
 
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [mobMenuOpen, setMobMenuOpen] = useState(false);
   const [coffees, setCoffees] = useState<Coffee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -968,7 +1046,7 @@ export default function CatalogPage() {
   const catalogContent = (
     <>
       {linhaParam && (
-        <div style={{ background: "var(--ink)", color: "var(--c-leveza)", padding: "12px 32px" }}>
+        <div style={{ background: "var(--ink)", color: "var(--c-leveza)", padding: mob ? "12px 16px" : "12px 32px" }}>
           <div style={{ maxWidth: 1320, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span style={{ fontSize: 14 }}>
               Filtrando: <span className="serif italic" style={{ fontSize: 17, color: "var(--c-mostarda)" }}>Linha {linhaParam}</span>
@@ -978,17 +1056,17 @@ export default function CatalogPage() {
         </div>
       )}
       <main style={{ maxWidth: role === "ROASTER" ? undefined : 1320, margin: role === "ROASTER" ? undefined : "0 auto", padding: mob ? "20px 16px 60px" : "32px 36px 80px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "260px 1fr", gap: 28, alignItems: "start" }}>
-          <Filters filters={filters} setFilters={setFilters} total={loading ? 0 : visible.length} regions={regions} role={role} />
+        <div className="ile-catalog-inner">
+          <Filters filters={filters} setFilters={setFilters} total={loading ? 0 : visible.length} regions={regions} role={role} mob={mob} />
           <div>
             {loading ? (
-              <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(3, 1fr)", gap: mob ? 12 : 20 }}>
+              <div className="ile-cards-grid">
                 {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
             ) : visible.length ? (
               <>
-                <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr 1fr" : "repeat(3, 1fr)", gap: mob ? 12 : 20 }}>
-                  {visible.slice(0, visibleCount).map(c => <CoffeeCard key={c.id} c={c} onAdd={addToCart} role={role} />)}
+                <div className="ile-cards-grid">
+                  {visible.slice(0, visibleCount).map(c => <CoffeeCard key={c.id} c={c} onAdd={addToCart} role={role} mob={mob} />)}
                 </div>
                 {visibleCount < visible.length && (
                   <div style={{ textAlign: "center", marginTop: 32 }}>
@@ -1018,7 +1096,7 @@ export default function CatalogPage() {
           </div>
         </div>
       </main>
-      <footer style={{ borderTop: "1px solid var(--line)", padding: "24px 32px", fontSize: 12, color: "var(--ink-2)" }}>
+      <footer style={{ borderTop: "1px solid var(--line)", padding: mob ? "20px 16px" : "24px 32px", fontSize: 12, color: "var(--ink-2)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
           <span className="mono" style={{ letterSpacing: ".12em", textTransform: "uppercase" }}>© 2026 Ilé Coffees · desde 1934</span>
           <div style={{ display: "flex", gap: 18 }}>
@@ -1167,7 +1245,7 @@ export default function CatalogPage() {
 
             {/* Scrollable content */}
             <div style={{ flex: 1, overflowY: "auto" }}>
-              <PageHeader />
+              <PageHeader mob={mob} />
               {catalogContent}
             </div>
           </div>
@@ -1180,8 +1258,8 @@ export default function CatalogPage() {
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
       <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
-      <Header cartCount={cartCount} q={filters.q} onQ={q => setFilters(f => ({ ...f, q }))} onCartOpen={() => setCartOpen(true)} />
-      <PageHeader />
+      <Header cartCount={cartCount} q={filters.q} onQ={q => setFilters(f => ({ ...f, q }))} onCartOpen={() => setCartOpen(true)} mob={mob} />
+      <PageHeader mob={mob} />
       {catalogContent}
       {overlays}
     </div>

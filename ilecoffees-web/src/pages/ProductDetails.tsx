@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo, useRef } from "react";
+﻿import { useEffect, useState, useMemo, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { CartButton } from "@/components/Cart/CartButton";
+import { useMobile } from "@/contexts/MobileContext";
 
 interface CoffeeProduct {
   id: string;
@@ -78,10 +79,11 @@ function XIcon({ size = 12 }: { size?: number }) {
 
 /* ===== Logo ===== */
 function Logo() {
+  const mob = useMobile();
   return (
     <Link to="/" style={{ display: "inline-flex", alignItems: "baseline", gap: 6 }}>
-      <span className="script" style={{ fontSize: 36, lineHeight: 0.75, color: "currentColor" }}>íle</span>
-      <span className="serif italic" style={{ fontSize: 13, lineHeight: 1, color: "var(--c-vibra)" }}>coffees</span>
+      <span className="script" style={{ fontSize: mob ? 26 : 36, lineHeight: 0.75, color: "currentColor" }}>íle</span>
+      {!mob && <span className="serif italic" style={{ fontSize: 13, lineHeight: 1, color: "var(--c-vibra)" }}>coffees</span>}
     </Link>
   );
 }
@@ -117,14 +119,16 @@ function UserMenu() {
     return () => document.removeEventListener("mousedown", onOut);
   }, []);
 
+  const mob = useMobile();
+
   return (
     <div ref={ref} style={{ position: "relative" }}>
       <button
         type="button"
         onClick={() => setOpen(o => !o)}
         style={{
-          display: "inline-flex", alignItems: "center", gap: 10,
-          padding: "6px 14px 6px 6px", borderRadius: 999,
+          display: "inline-flex", alignItems: "center", gap: mob ? 0 : 10,
+          padding: mob ? "4px" : "6px 14px 6px 6px", borderRadius: 999,
           border: "1px solid var(--line)", background: "var(--paper)",
           cursor: "pointer", fontFamily: "inherit",
         }}
@@ -133,17 +137,23 @@ function UserMenu() {
           width: 34, height: 34, borderRadius: 999,
           background: "var(--c-vibra)", color: "#fff",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: 13, fontWeight: 700, flexShrink: 0,
+          fontSize: 13, fontWeight: 700, flexShrink: 0, overflow: "hidden",
         }}>
-          {initials.toUpperCase() || "?"}
+          {(user as any)?.photoUrl
+            ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            : initials.toUpperCase() || "?"}
         </span>
-        <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
-          <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{firstName}</span>
-          <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", color: "var(--c-vibra)", lineHeight: 1 }}>{roleLabel}</span>
-        </span>
-        <svg width={12} height={12} viewBox="0 0 12 12" fill="none" style={{ color: "var(--ink-2)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}>
-          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        {!mob && (
+          <>
+            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+              <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{firstName}</span>
+              <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", color: "var(--c-vibra)", lineHeight: 1 }}>{roleLabel}</span>
+            </span>
+            <svg width={12} height={12} viewBox="0 0 12 12" fill="none" style={{ color: "var(--ink-2)", transform: open ? "rotate(180deg)" : undefined, transition: "transform .15s" }}>
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </>
+        )}
       </button>
 
       {open && (
@@ -184,6 +194,7 @@ function UserMenu() {
 
 function Header() {
   const { isAuthenticated } = useAuth();
+  const mob = useMobile();
 
   return (
     <header style={{
@@ -192,24 +203,22 @@ function Header() {
       borderBottom: "1px solid var(--line)",
     }}>
       <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: "16px 32px",
-        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24,
+        maxWidth: 1320, margin: "0 auto", padding: mob ? "10px 16px" : "16px 32px",
+        display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Logo />
           <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
-          <Link to="/explore" style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)", textDecoration: "none", fontFamily: "inherit" }} className="mono">
-            ← Catálogo
+          <Link to="/explore" style={{ fontSize: mob ? 12 : 11, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)", textDecoration: "none", fontFamily: "inherit" }} className="mono">
+            ← {mob ? "Voltar" : "Catálogo"}
           </Link>
         </div>
 
-        <div />
-
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {isAuthenticated ? (
             <UserMenu />
           ) : (
-            <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)" }}>Entrar</Link>
+            <Link to="/login" style={{ padding: mob ? "7px 12px" : "9px 16px", fontSize: 13, color: "var(--ink-2)", border: "1px solid var(--line)", borderRadius: 999, textDecoration: "none" }}>Entrar</Link>
           )}
           <CartButton />
         </div>
@@ -220,6 +229,7 @@ function Header() {
 
 /* ===== Gallery ===== */
 function Gallery({ coffee }: { coffee: CoffeeProduct }) {
+  const mob = useMobile();
   const line = getLine(coffee.score);
   const lineBg = line === "Raros" ? "var(--c-glamour)" : line === "Extraordinários" ? "var(--c-barro)" : "var(--c-leveza)";
   const lineInk = line === "Origens" ? "var(--ink)" : "var(--c-leveza)";
@@ -227,7 +237,7 @@ function Gallery({ coffee }: { coffee: CoffeeProduct }) {
 
   if (coffee.photoUrl) {
     return (
-      <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid var(--ink)", boxShadow: "0 32px 64px -30px rgba(28,8,16,.4)", aspectRatio: "1 / 1.08" }}>
+      <div style={{ borderRadius: 18, overflow: "hidden", border: "1.5px solid var(--ink)", boxShadow: "0 32px 64px -30px rgba(28,8,16,.4)", aspectRatio: mob ? "4 / 3" : "1 / 1.08" }}>
         <img src={coffee.photoUrl} alt={coffee.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
     );
@@ -235,46 +245,46 @@ function Gallery({ coffee }: { coffee: CoffeeProduct }) {
 
   return (
     <div style={{
-      aspectRatio: "1 / 1.08", borderRadius: 18, overflow: "hidden",
+      aspectRatio: mob ? "4 / 3" : "1 / 1.08", borderRadius: 18, overflow: "hidden",
       background: lineBg, color: lineInk,
       border: "1.5px solid var(--ink)", position: "relative",
-      padding: "32px 30px",
+      padding: mob ? "20px 22px" : "32px 30px",
       boxShadow: "0 32px 64px -30px rgba(28,8,16,.4)",
       display: "flex", flexDirection: "column",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <span className="script" style={{ fontSize: 88, lineHeight: 0.7 }}>íle</span>
+        <span className="script" style={{ fontSize: mob ? 52 : 88, lineHeight: 0.7 }}>íle</span>
         <span className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", opacity: 0.65 }}>
           {coffee.packageWeight ? `${coffee.packageWeight}g` : "250g"} · grãos
         </span>
       </div>
-      <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", opacity: 0.65, marginTop: 28 }}>
+      <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", opacity: 0.65, marginTop: mob ? 10 : 28 }}>
         Linha {line}
       </div>
-      <div className="serif" style={{ fontSize: 56, lineHeight: 0.92, letterSpacing: "-.02em", marginTop: 12 }}>
+      <div className="serif" style={{ fontSize: mob ? 32 : 56, lineHeight: 0.92, letterSpacing: "-.02em", marginTop: 8 }}>
         {coffee.name.split(" ").map((w, i, arr) =>
           i === arr.length - 1
             ? <span key={i} className="italic" style={{ color: mostraAcc }}>{w}</span>
             : <span key={i}>{w} </span>
         )}
       </div>
-      {coffee.description && (
+      {!mob && coffee.description && (
         <div className="serif italic" style={{ fontSize: 17, marginTop: 18, opacity: 0.9, lineHeight: 1.3 }}>
           {coffee.description.split("·").slice(0, 3).join("·")}
         </div>
       )}
-      <div style={{ marginTop: "auto", paddingTop: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+      <div style={{ marginTop: "auto", paddingTop: mob ? 12 : 24, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
         <div>
           {coffee.score && (
             <>
               <div className="mono" style={{ fontSize: 9, letterSpacing: ".14em", opacity: 0.65, textTransform: "uppercase" }}>SCA</div>
-              <div className="serif" style={{ fontSize: 36, lineHeight: 1, color: mostraAcc }}>{coffee.score} pts</div>
+              <div className="serif" style={{ fontSize: mob ? 22 : 36, lineHeight: 1, color: mostraAcc }}>{coffee.score} pts</div>
             </>
           )}
         </div>
         <div style={{ textAlign: "right" }}>
           <div className="mono" style={{ fontSize: 9, letterSpacing: ".14em", opacity: 0.65, textTransform: "uppercase" }}>Safra</div>
-          <div className="mono" style={{ fontSize: 16, marginTop: 4 }}>2026</div>
+          <div className="mono" style={{ fontSize: mob ? 13 : 16, marginTop: 4 }}>2026</div>
         </div>
       </div>
     </div>
@@ -283,6 +293,7 @@ function Gallery({ coffee }: { coffee: CoffeeProduct }) {
 
 /* ===== Specs ===== */
 function Specs({ coffee }: { coffee: CoffeeProduct }) {
+  const mob = useMobile();
   const rows: [string, string][] = [
     ["Região", coffee.region ?? "—"],
     ["Variedade", coffee.variety ?? "—"],
@@ -299,15 +310,16 @@ function Specs({ coffee }: { coffee: CoffeeProduct }) {
       }}>
         Ficha técnica · safra 2026
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" }}>
         {rows.map(([k, v], i) => (
           <div key={k} style={{
-            padding: "18px 20px",
+            padding: mob ? "12px 14px" : "18px 20px",
             borderRight: (i % 2 !== 1) ? "1px solid var(--line)" : undefined,
             borderTop: i >= 2 ? "1px solid var(--line)" : undefined,
+            minWidth: 0,
           }}>
             <div className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)" }}>{k}</div>
-            <div className="serif" style={{ fontSize: 20, lineHeight: 1.2, marginTop: 6 }}>{v}</div>
+            <div className="serif" style={{ fontSize: mob ? 15 : 20, lineHeight: 1.2, marginTop: 4, wordBreak: "break-word" }}>{v}</div>
           </div>
         ))}
       </div>
@@ -317,6 +329,7 @@ function Specs({ coffee }: { coffee: CoffeeProduct }) {
 
 /* ===== Tasting notes ===== */
 function TastingNotes({ coffee }: { coffee: CoffeeProduct }) {
+  const mob = useMobile();
   const source = coffee.sensory ?? coffee.description;
   const notes = source
     ? source.split(/[·\-,]/).map(n => n.trim()).filter(Boolean).slice(0, 5)
@@ -333,7 +346,7 @@ function TastingNotes({ coffee }: { coffee: CoffeeProduct }) {
       <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
         <span style={{ color: "var(--c-vibra)" }}>§</span> &nbsp; Notas sensoriais
       </div>
-      <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
+      <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: mob ? 28 : "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
         O que você vai <span className="italic" style={{ color: "var(--c-vibra)" }}>provar</span>.
       </h2>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
@@ -370,40 +383,41 @@ function TastingNotes({ coffee }: { coffee: CoffeeProduct }) {
 
 /* ===== Producer ===== */
 function Producer({ coffee }: { coffee: CoffeeProduct }) {
+  const mob = useMobile();
   if (!coffee.farm && !coffee.region) return null;
   return (
-    <section style={{ marginTop: 56 }}>
+    <section style={{ marginTop: mob ? 36 : 56 }}>
       <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
         <span style={{ color: "var(--c-vibra)" }}>§</span> &nbsp; Conheça a fazenda
       </div>
-      <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
+      <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: mob ? 28 : "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
         Quem <span className="italic" style={{ color: "var(--c-vibra)" }}>cultivou</span> esse café.
       </h2>
       <div style={{
-        display: "grid", gridTemplateColumns: "auto 1fr", gap: 28, alignItems: "stretch",
-        padding: 24, background: "var(--c-mostarda)", borderRadius: 18, border: "1.5px solid var(--ink)",
+        display: "grid", gridTemplateColumns: mob ? "1fr" : "auto 1fr", gap: mob ? 16 : 28, alignItems: "stretch",
+        padding: mob ? 16 : 24, background: "var(--c-mostarda)", borderRadius: 18, border: "1.5px solid var(--ink)",
       }}>
         <div style={{
-          width: 240, aspectRatio: "3 / 4", borderRadius: 12,
+          width: mob ? "100%" : 240, aspectRatio: mob ? "16 / 7" : "3 / 4", borderRadius: 12,
           background: "var(--c-barro)", color: "var(--c-leveza)",
           border: "1.5px solid var(--ink)", position: "relative", overflow: "hidden",
-          display: "flex", alignItems: "flex-end", padding: 18,
+          display: "flex", alignItems: "flex-end", padding: mob ? "14px 16px" : 18,
         }}>
           <div>
-            <div className="serif italic" style={{ fontSize: 26, lineHeight: 1 }}>{coffee.farm ?? "Produtor"}</div>
+            <div className="serif italic" style={{ fontSize: mob ? 20 : 26, lineHeight: 1 }}>{coffee.farm ?? "Produtor"}</div>
             <div className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", opacity: 0.8, marginTop: 6 }}>
               Produtores · desde 1934
             </div>
           </div>
         </div>
         <div>
-          <div className="serif" style={{ fontSize: 36, lineHeight: 1, letterSpacing: "-.02em" }}>{coffee.farm ?? "Fazenda"}</div>
+          <div className="serif" style={{ fontSize: mob ? 24 : 36, lineHeight: 1, letterSpacing: "-.02em" }}>{coffee.farm ?? "Fazenda"}</div>
           <div style={{ fontSize: 14, color: "var(--ink-2)", marginTop: 6 }}>{coffee.region ?? "Brasil"}</div>
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--ink)", marginTop: 16, maxWidth: 580 }}>
+          <p style={{ fontSize: mob ? 14 : 15, lineHeight: 1.6, color: "var(--ink)", marginTop: 12, maxWidth: 580 }}>
             Uma das fazendas parceiras da Ilé Coffees, selecionada pelo rigoroso processo de curadoria,
             garantindo que apenas os melhores grãos cheguem até você.
           </p>
-          <div style={{ marginTop: 18 }}>
+          <div style={{ marginTop: 14 }}>
             <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>Fornecido por</div>
             <ul style={{ listStyle: "none", padding: 0, margin: "10px 0 0", display: "flex", flexDirection: "column", gap: 6 }}>
               <li style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
@@ -420,6 +434,7 @@ function Producer({ coffee }: { coffee: CoffeeProduct }) {
 
 /* ===== Reviews ===== */
 function Reviews() {
+  const mob = useMobile();
   const rating = 4.8;
   const count = 24;
   const histogram = [5, 4, 3, 2, 1].map(s => ({
@@ -433,10 +448,10 @@ function Reviews() {
       <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
         <span style={{ color: "var(--c-vibra)" }}>§</span> &nbsp; Avaliações dos clientes
       </div>
-      <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
+      <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: mob ? 28 : "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
         Quem provou, <span className="italic" style={{ color: "var(--c-vibra)" }}>aprovou</span>.
       </h2>
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: 24, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "300px 1fr", gap: mob ? 12 : 24, marginBottom: 28 }}>
         <div style={{ padding: 22, borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <span className="serif" style={{ fontSize: 64, lineHeight: 1, letterSpacing: "-.03em" }}>{rating.toFixed(1)}</span>
@@ -511,6 +526,7 @@ function Reviews() {
 /* ===== Buy box ===== */
 function BuyBox({ coffee, role, onAdd }: { coffee: CoffeeProduct; role: string; onAdd: (qty: number, variant: string) => void }) {
   const { isAuthenticated } = useAuth();
+  const mob = useMobile();
   const hasBoth = coffee.saleType === "BOTH";
   const canBuyKg = (coffee.saleType === "KG" || hasBoth) && (role === "COFFEESHOP" || role === "ROASTER");
   const canBuyPackage = (coffee.saleType === "PACKAGE" || hasBoth) && role !== "ROASTER";
@@ -569,15 +585,15 @@ function BuyBox({ coffee, role, onAdd }: { coffee: CoffeeProduct; role: string; 
 
   return (
     <aside style={{
-      position: "sticky", top: 96, alignSelf: "flex-start",
+      position: mob ? undefined : "sticky", top: mob ? undefined : 96, alignSelf: "flex-start",
       background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18,
-      padding: 24, display: "flex", flexDirection: "column", gap: 18,
+      padding: mob ? 16 : 24, display: "flex", flexDirection: "column", gap: mob ? 14 : 18,
       boxShadow: "0 30px 60px -36px rgba(28,8,16,.25)",
     }}>
       {/* Price */}
       <div>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
-          <span className="serif" style={{ fontSize: 48, lineHeight: 1, letterSpacing: "-.02em" }}>
+          <span className="serif" style={{ fontSize: mob ? 34 : 48, lineHeight: 1, letterSpacing: "-.02em" }}>
             R$ {unitPrice.toFixed(2).replace(".", ",")}
           </span>
           <span className="mono" style={{ fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)" }}>
@@ -634,7 +650,7 @@ function BuyBox({ coffee, role, onAdd }: { coffee: CoffeeProduct; role: string; 
           style={{
             width: "100%", padding: "12px 14px", border: "1px solid var(--line)",
             borderRadius: 12, fontSize: 14, background: "var(--bg)", outline: "none",
-            appearance: "none" as const, fontFamily: "inherit", color: "inherit",
+            appearance: "none" as const, fontFamily: "inherit", color: "inherit", boxSizing: "border-box" as const,
             backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%231c0810' stroke-width='1.2' fill='none' stroke-linecap='round'/></svg>")`,
             backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36,
           }}
@@ -662,11 +678,14 @@ function BuyBox({ coffee, role, onAdd }: { coffee: CoffeeProduct; role: string; 
             setLoginMsg(false);
             onAdd(qty, variant);
           }} style={{
-            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
-            padding: "12px 18px", background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 12, fontSize: 14,
-            border: 0, cursor: "pointer", fontFamily: "inherit",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
+            padding: mob ? "12px 14px" : "12px 18px", background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 12, fontSize: mob ? 13 : 14,
+            border: 0, cursor: "pointer", fontFamily: "inherit", minWidth: 0, overflow: "hidden",
           }}>
-            <CartIcon /> Adicionar — R$ {total.toFixed(2).replace(".", ",")}
+            <CartIcon size={14} />
+            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {mob ? `R$ ${total.toFixed(2).replace(".", ",")}` : `Adicionar — R$ ${total.toFixed(2).replace(".", ",")}`}
+            </span>
           </button>
         </div>
         {loginMsg && (
@@ -700,7 +719,7 @@ function BuyBox({ coffee, role, onAdd }: { coffee: CoffeeProduct; role: string; 
             type="text" placeholder="00000-000" value={cep}
             onChange={e => setCep(maskCEP(e.target.value))}
             inputMode="numeric"
-            style={{ padding: "12px 14px", border: "1px solid var(--line)", borderRadius: 12, fontSize: 14, background: "var(--bg)", outline: "none", fontFamily: "inherit" }}
+            style={{ padding: "12px 14px", border: "1px solid var(--line)", borderRadius: 12, fontSize: 14, background: "var(--bg)", outline: "none", fontFamily: "inherit", boxSizing: "border-box", minWidth: 0 }}
           />
           <button onClick={calcFreight} disabled={freightLoading} style={{
             padding: "12px 18px", border: "1px solid var(--ink)", borderRadius: 12, fontSize: 13,
@@ -798,15 +817,6 @@ function Toast({ item, onClose }: { item: { name: string; qty: number; variant: 
 }
 
 /* ===== Page ===== */
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 export default function ProductDetails() {
   const { productId } = useParams<{ productId: string }>();
@@ -816,7 +826,7 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ name: string; qty: number; variant: string } | null>(null);
   const [isFav, setIsFav] = useState(false);
-  const mob = useIsMobile();
+  const mob = useMobile();
 
   const isRegularUser = type === "USER" && user?.accountType !== "COFFEESHOP";
   const role =
@@ -883,7 +893,7 @@ export default function ProductDetails() {
   }
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)", overflowX: "hidden" }}>
       <Header />
 
       {/* Breadcrumb */}
@@ -901,17 +911,17 @@ export default function ProductDetails() {
 
       <main style={{
         maxWidth: 1320, margin: "0 auto", padding: mob ? "20px 16px 60px" : "28px 32px 80px",
-        display: "grid", gridTemplateColumns: mob ? "1fr" : "minmax(0, 1fr) 380px", gap: mob ? 32 : 48, alignItems: "start",
+        display: "grid", gridTemplateColumns: mob ? "minmax(0, 1fr)" : "minmax(0, 1fr) 380px", gap: mob ? 32 : 48, alignItems: "start",
       }}>
-        <div>
+        <div style={{ minWidth: 0 }}>
           {/* Gallery + title */}
-          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "minmax(0, 1fr) minmax(0, 1.05fr)", gap: mob ? 24 : 36, alignItems: "start" }}>
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "minmax(0, 1fr)" : "minmax(0, 1fr) minmax(0, 1.05fr)", gap: mob ? 24 : 36, alignItems: "start" }}>
             <Gallery coffee={coffee} />
             <div>
               <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
                 <span style={{ color: "var(--c-vibra)" }}>Linha {line}</span> &nbsp;·&nbsp; {coffee.region ?? "Brasil"}
               </div>
-              <h1 className="serif" style={{ margin: "12px 0 0", fontSize: "clamp(48px, 6vw, 80px)", lineHeight: 0.9, letterSpacing: "-.03em" }}>
+              <h1 className="serif" style={{ margin: "12px 0 0", fontSize: mob ? "clamp(32px, 9vw, 48px)" : "clamp(48px, 6vw, 80px)", lineHeight: 0.9, letterSpacing: "-.03em" }}>
                 {coffee.name.split(" ").map((w, i, arr) =>
                   i === arr.length - 1
                     ? <span key={i} className="italic" style={{ color: "var(--c-vibra)" }}>{w}</span>
@@ -957,13 +967,15 @@ export default function ProductDetails() {
             </div>
           </div>
 
+          {mob && <BuyBox coffee={coffee} role={role} onAdd={handleAdd} />}
+
           <Specs coffee={coffee} />
           <TastingNotes coffee={coffee} />
           <Producer coffee={coffee} />
           <Reviews />
         </div>
 
-        <BuyBox coffee={coffee} role={role} onAdd={handleAdd} />
+        {!mob && <BuyBox coffee={coffee} role={role} onAdd={handleAdd} />}
       </main>
 
       {/* Related */}

@@ -1,7 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+﻿import { useEffect, useState, useRef } from "react";
 import { Link, NavLink, useParams, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMobile } from "@/contexts/MobileContext";
 
 interface Coffee {
   id: string;
@@ -98,9 +99,9 @@ function Logo() {
 function Header() {
   const { isAuthenticated, user, type, supplierType, logout } = useAuth();
   const navigate = useNavigate();
+  const mob = useMobile();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const mob = useIsMobile();
 
   useEffect(() => {
     function onOut(e: MouseEvent) {
@@ -113,51 +114,48 @@ function Header() {
   const userName = user?.name ?? "";
   const accountType = (user as any)?.accountType ?? "CUSTOMER";
   const dashboardPath = type === "SUPPLIER" ? (supplierType === "PRODUCER" ? "/dashboard/producer" : "/dashboard/supplier") : type === "ADMIN" ? "/dashboard/admin" : accountType === "COFFEESHOP" ? "/dashboard/coffeeshop" : "/dashboard/customer";
+  const avatarBg = type === "SUPPLIER" ? "var(--c-glamour)" : type === "ADMIN" ? "var(--c-vibra)" : accountType === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)";
+  const avatarColor = (type === "SUPPLIER" || type === "ADMIN" || accountType === "COFFEESHOP") ? "var(--c-leveza)" : "var(--ink)";
+  const avatarSpan = (
+    <span style={{ width: 32, height: 32, borderRadius: 999, overflow: "hidden", background: avatarBg, color: avatarColor, display: "inline-flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 11, flexShrink: 0 }}>
+      {(user as any)?.photoUrl ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : getInitials(userName)}
+    </span>
+  );
 
   return (
-    <header style={{
-      position: "sticky", top: 0, zIndex: 30,
-      background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)",
-      borderBottom: "1px solid var(--line)",
-    }}>
-      <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: mob ? "14px 20px" : "16px 32px",
-        display: "grid", gridTemplateColumns: mob ? "auto auto" : "auto 1fr auto", alignItems: "center", gap: 24,
-      }}>
-        <Logo />
-        {!mob && (
-          accountType === "COFFEESHOP" ? (
-            <Link to="/dashboard/coffeeshop" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
-              <ArrowIcon size={12} dir="left" /> Voltar ao meu painel
-            </Link>
-          ) : (
-            <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
-              <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
-              <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
-            </nav>
-          )
-        )}
-        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          {isAuthenticated ? (
+    <header style={{ position: "sticky", top: 0, zIndex: 30, background: "rgba(238,243,235,.92)", backdropFilter: "blur(10px)", borderBottom: "1px solid var(--line)" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "10px 16px" : "16px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        {mob ? (
+          <>
+            <Logo />
+            {isAuthenticated ? (
+              <Link to={dashboardPath} style={{ display: "inline-flex", alignItems: "center", padding: 3, borderRadius: 999, border: "1px solid var(--line)", background: "var(--paper)", textDecoration: "none" }} title="Meu painel">
+                {avatarSpan}
+              </Link>
+            ) : (
+              <Link to="/login" style={{ padding: "7px 14px", fontSize: 13, color: "var(--ink-2)", border: "1px solid var(--line)", borderRadius: 999, textDecoration: "none" }}>Entrar</Link>
+            )}
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <Logo />
+              <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
+              {accountType === "COFFEESHOP" ? (
+                <Link to="/dashboard/coffeeshop" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
+                  <ArrowIcon size={12} dir="left" /> Voltar ao meu painel
+                </Link>
+              ) : (
+                <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
+                  <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
+                  <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
+                </nav>
+              )}
+            </div>
             <div ref={menuRef} style={{ position: "relative" }}>
-              <button onClick={() => setMenuOpen(o => !o)} style={{
-                display: "inline-flex", alignItems: "center", gap: 10,
-                padding: "6px 12px 6px 6px", borderRadius: 999,
-                border: "1px solid var(--line)", background: "var(--paper)",
-                cursor: "pointer", fontFamily: "inherit",
-              }}>
-                <span style={{
-                  width: 32, height: 32, borderRadius: 999, overflow: "hidden",
-                  background: type === "SUPPLIER" ? "var(--c-glamour)" : type === "ADMIN" ? "var(--c-vibra)" : accountType === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)",
-                  color: (type === "SUPPLIER" || type === "ADMIN" || accountType === "COFFEESHOP") ? "var(--c-leveza)" : "var(--ink)",
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  fontWeight: 600, fontSize: 11,
-                }}>
-                  {(user as any)?.photoUrl
-                    ? <img src={(user as any).photoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : getInitials(userName)}
-                </span>
+              <button onClick={() => setMenuOpen(o => !o)} style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "6px 12px 6px 6px", borderRadius: 999, border: "1px solid var(--line)", background: "var(--paper)", cursor: "pointer", fontFamily: "inherit" }}>
+                {avatarSpan}
                 <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: 1.1 }}>
                   <span style={{ fontSize: 13 }}>{userName.split(" ")[0]}</span>
                   <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)" }}>
@@ -167,36 +165,15 @@ function Header() {
                 <ChevronIcon open={menuOpen} />
               </button>
               {menuOpen && (
-                <div style={{
-                  position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 40,
-                  minWidth: 200, background: "var(--paper)",
-                  border: "1px solid var(--line)", borderRadius: 14,
-                  boxShadow: "0 24px 40px -20px rgba(28,8,16,.3)", padding: 8,
-                }}>
-                  <Link to={dashboardPath} onClick={() => setMenuOpen(false)} style={{
-                    display: "flex", padding: "10px 12px", borderRadius: 8,
-                    fontSize: 14, color: "var(--ink)", textDecoration: "none",
-                  }}>Meu painel</Link>
+                <div style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", zIndex: 40, minWidth: 200, background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 14, boxShadow: "0 24px 40px -20px rgba(28,8,16,.3)", padding: 8 }}>
+                  <Link to={dashboardPath} onClick={() => setMenuOpen(false)} style={{ display: "flex", padding: "10px 12px", borderRadius: 8, fontSize: 14, color: "var(--ink)", textDecoration: "none" }}>Meu painel</Link>
                   <div style={{ height: 1, background: "var(--line)", margin: "6px 0" }} />
-                  <button onClick={() => { logout(); navigate("/"); }} style={{
-                    display: "flex", width: "100%", padding: "10px 12px", borderRadius: 8,
-                    fontSize: 14, color: "#b8231a", background: "transparent",
-                    border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                  }}>Sair</button>
+                  <button onClick={() => { logout(); navigate("/"); }} style={{ display: "flex", width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 14, color: "#b8231a", background: "transparent", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}>Sair</button>
                 </div>
               )}
             </div>
-          ) : (
-            <>
-              <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}>Entrar</Link>
-              <Link to="/register/customer" style={{
-                display: "inline-flex", alignItems: "center", gap: 8,
-                padding: "10px 14px", borderRadius: 999, border: "1px solid var(--ink)", fontSize: 13,
-                textDecoration: "none", color: "var(--ink)",
-              }}>Criar conta</Link>
-            </>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </header>
   );
@@ -204,39 +181,44 @@ function Header() {
 
 /* ── StepIndicator ── */
 function StepIndicator({ step }: { step: Step }) {
+  const mob = useMobile();
   const steps: { id: Step; label: string }[] = [
     { id: "DETAILS", label: "Detalhes" },
     { id: "PAYMENT", label: "Pagamento" },
     { id: "SUCCESS", label: "Confirmação" },
   ];
   const idx = steps.findIndex(s => s.id === step);
+  const bubbleSize = mob ? 24 : 28;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 36 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: mob ? 24 : 36 }}>
       {steps.map((s, i) => {
         const done = i < idx;
         const active = i === idx;
         return (
           <div key={s.id} style={{ display: "flex", alignItems: "center" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: mob ? 6 : 10 }}>
               <span style={{
-                width: 28, height: 28, borderRadius: 999,
+                width: bubbleSize, height: bubbleSize, borderRadius: 999,
                 background: done ? "var(--success)" : active ? "var(--ink)" : "var(--bg-2)",
                 color: (done || active) ? "var(--c-leveza)" : "var(--ink-2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 12, fontWeight: 600, flexShrink: 0,
+                fontSize: mob ? 10 : 12, fontWeight: 600, flexShrink: 0,
                 border: `1px solid ${done ? "var(--success)" : active ? "var(--ink)" : "var(--line)"}`,
               }}>
-                {done ? <CheckIcon size={12} color="var(--c-leveza)" /> : i + 1}
+                {done ? <CheckIcon size={mob ? 10 : 12} color="var(--c-leveza)" /> : i + 1}
               </span>
-              <span className="mono" style={{
-                fontSize: 11, letterSpacing: ".12em", textTransform: "uppercase",
-                color: active ? "var(--ink)" : done ? "var(--success)" : "var(--ink-2)",
-              }}>
-                {s.label}
-              </span>
+              {(!mob || active) && (
+                <span className="mono" style={{
+                  fontSize: mob ? 10 : 11, letterSpacing: ".12em", textTransform: "uppercase",
+                  color: active ? "var(--ink)" : done ? "var(--success)" : "var(--ink-2)",
+                  whiteSpace: "nowrap",
+                }}>
+                  {s.label}
+                </span>
+              )}
             </div>
             {i < steps.length - 1 && (
-              <div style={{ width: 40, height: 1, background: done ? "var(--success)" : "var(--line)", margin: "0 12px" }} />
+              <div style={{ width: mob ? 16 : 40, height: 1, background: done ? "var(--success)" : "var(--line)", margin: mob ? "0 6px" : "0 12px", flexShrink: 0 }} />
             )}
           </div>
         );
@@ -576,7 +558,7 @@ function PaymentStep({ plan, billing, orderId, onConfirm, confirming, role }: {
   plan: Plan; billing: BillingCycle; orderId: string;
   onConfirm: (method: PayMethod) => void; confirming: boolean; role: string;
 }) {
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [method, setMethod] = useState<PayMethod>("PIX");
   const { monthly, annual } = effectivePrices(plan, role);
   const price = billing === "MONTHLY" ? monthly : annual;
@@ -680,15 +662,6 @@ function PaymentStep({ plan, billing, orderId, onConfirm, confirming, role }: {
 }
 
 /* ── useIsMobile ── */
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 /* ── Page ── */
 export default function SubscriptionDetail() {
@@ -697,7 +670,7 @@ export default function SubscriptionDetail() {
   const role = (user as any)?.accountType === "COFFEESHOP" ? "COFFEESHOP" : "CUSTOMER";
   const navigate = useNavigate();
 
-  const mob = useIsMobile();
+  const mob = useMobile();
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
   const [billing, setBilling] = useState<BillingCycle>("MONTHLY");
@@ -755,7 +728,7 @@ export default function SubscriptionDetail() {
   if (!plan) return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
       <Header />
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "80px 32px", textAlign: "center" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: mob ? "48px 20px" : "80px 32px", textAlign: "center" }}>
         <p className="serif" style={{ fontSize: 24, color: "var(--ink-2)" }}>Plano não encontrado.</p>
       </div>
     </div>

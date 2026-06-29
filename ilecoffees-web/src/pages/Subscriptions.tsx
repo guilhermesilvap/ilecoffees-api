@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMobile } from "@/contexts/MobileContext";
 
 interface Coffee {
   id: string;
@@ -109,7 +110,7 @@ function Logo() {
 }
 
 /* ── Header ── */
-function Header() {
+function Header({ mob }: { mob: boolean }) {
   const { isAuthenticated, user, type, supplierType, logout } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -134,22 +135,26 @@ function Header() {
       borderBottom: "1px solid var(--line)",
     }}>
       <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: "16px 32px",
-        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24,
+        maxWidth: 1320, margin: "0 auto", padding: mob ? "12px 16px" : "16px 32px",
+        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: mob ? 12 : 24,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <Logo />
-          <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
-          {accountType === "COFFEESHOP" ? (
-            <Link to="/dashboard/coffeeshop" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
-              <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><ArrowIcon size={12} /></span> Voltar ao meu painel
-            </Link>
-          ) : (
-            <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
-              <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
-              <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
-            </nav>
+          {!mob && (
+            <>
+              <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
+              {accountType === "COFFEESHOP" ? (
+                <Link to="/dashboard/coffeeshop" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 13, color: "var(--ink-2)", textDecoration: "none" }}>
+                  <span style={{ display: "inline-flex", transform: "rotate(180deg)" }}><ArrowIcon size={12} /></span> Voltar ao meu painel
+                </Link>
+              ) : (
+                <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
+                  <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
+                  <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
+                </nav>
+              )}
+            </>
           )}
         </div>
 
@@ -232,42 +237,45 @@ function Header() {
 }
 
 /* ── Hero ── */
-function Hero({ planCount }: { planCount: number }) {
+function Hero({ planCount, mob }: { planCount: number; mob: boolean }) {
+  const stats = [
+    [String(planCount || "—"), "planos disponíveis"],
+    ["+12", "fornecedores ativos"],
+    ["100%", "grãos certificados"],
+    ["Mensal", "ou anual"],
+  ];
+  const cols = mob ? 2 : 4;
   return (
     <section style={{ borderBottom: "1px solid var(--line)" }}>
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "40px 32px 28px" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "28px 16px 20px" : "40px 32px 28px" }}>
         <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
           <span style={{ color: "var(--c-vibra)" }}>§</span>&nbsp; Assinaturas · íle coffees
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 36, alignItems: "flex-end", marginTop: 14 }}>
-          <h1 className="serif" style={{ margin: 0, fontSize: "clamp(44px, 5vw, 76px)", lineHeight: 0.9, letterSpacing: "-.03em" }}>
+        <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1.4fr 1fr", gap: mob ? 14 : 36, alignItems: "flex-end", marginTop: 14 }}>
+          <h1 className="serif" style={{ margin: 0, fontSize: mob ? "clamp(36px, 10vw, 56px)" : "clamp(44px, 5vw, 76px)", lineHeight: 0.9, letterSpacing: "-.03em" }}>
             Café especial<br />
             <span className="italic" style={{ color: "var(--c-vibra)" }}>em casa</span>,<br />
             todo mês.
           </h1>
-          <p style={{ fontSize: 16, lineHeight: 1.55, color: "var(--ink-2)", maxWidth: 420, margin: 0 }}>
+          <p style={{ fontSize: mob ? 14 : 16, lineHeight: 1.55, color: "var(--ink-2)", maxWidth: 420, margin: 0 }}>
             Assine um plano de um dos nossos fornecedores certificados e receba café
             fresco com a moagem que preferir — direto da origem para o seu coador.
           </p>
         </div>
 
         <div style={{
-          marginTop: 28, display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0,
+          marginTop: mob ? 20 : 28, display: "grid", gridTemplateColumns: `repeat(${cols}, 1fr)`, gap: 0,
           border: "1px solid var(--ink)", borderRadius: 14, overflow: "hidden",
           background: "var(--paper)",
         }}>
-          {[
-            [String(planCount || "—"), "planos disponíveis"],
-            ["+12", "fornecedores ativos"],
-            ["100%", "grãos certificados"],
-            ["Mensal", "ou anual — sem fidelidade"],
-          ].map(([v, k], i) => (
+          {stats.map(([v, k], i) => (
             <div key={k} style={{
-              padding: "14px 20px",
-              borderRight: i < 3 ? "1px solid var(--line)" : undefined,
+              padding: mob ? "12px 14px" : "14px 20px",
+              borderRight: (i % cols !== cols - 1) ? "1px solid var(--line)" : undefined,
+              borderTop: i >= cols ? "1px solid var(--line)" : undefined,
               background: i === 0 ? "var(--c-mostarda)" : "transparent",
             }}>
-              <div className="serif" style={{ fontSize: 34, lineHeight: 0.95, letterSpacing: "-.03em" }}>{v}</div>
+              <div className="serif" style={{ fontSize: mob ? 26 : 34, lineHeight: 0.95, letterSpacing: "-.03em" }}>{v}</div>
               <div className="mono" style={{ fontSize: 10, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)", marginTop: 6 }}>{k}</div>
             </div>
           ))}
@@ -525,7 +533,7 @@ function SkeletonCard() {
 }
 
 /* ── HowItWorks ── */
-function HowItWorks() {
+function HowItWorks({ mob }: { mob: boolean }) {
   const steps = [
     { n: "01", icon: <CoffeeIcon size={28} />, title: "Escolha o plano", body: "Navegue pelos planos disponíveis e filtre por fornecedor, preço e tipo de café." },
     { n: "02", icon: <StarIcon size={28} />, title: "Personalize", body: "Selecione o ciclo de cobrança — mensal ou anual. No anual você economiza até 20%." },
@@ -533,28 +541,28 @@ function HowItWorks() {
   ];
   return (
     <section style={{ borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)", background: "var(--c-barro)", color: "var(--c-leveza)" }}>
-      <div style={{ maxWidth: 1320, margin: "0 auto", padding: "72px 32px" }}>
+      <div style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "48px 16px" : "72px 32px" }}>
         <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--c-mostarda)" }}>
           Como funciona
         </div>
-        <h2 className="serif" style={{ margin: "14px 0 56px", fontSize: "clamp(40px, 5vw, 72px)", lineHeight: 0.92, letterSpacing: "-.025em" }}>
+        <h2 className="serif" style={{ margin: mob ? "14px 0 36px" : "14px 0 56px", fontSize: mob ? "clamp(32px, 8vw, 52px)" : "clamp(40px, 5vw, 72px)", lineHeight: 0.92, letterSpacing: "-.025em" }}>
           Simples como um<br /><span className="italic" style={{ color: "var(--c-mostarda)" }}>bom coado</span>.
         </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2 }}>
+        <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3, 1fr)", gap: mob ? 16 : 2 }}>
           {steps.map((s, i) => (
             <div key={s.n} style={{
-              padding: "32px 30px",
+              padding: mob ? "24px 22px" : "32px 30px",
               background: i === 1 ? "rgba(255,255,255,.06)" : "transparent",
-              borderRadius: 16, border: i === 1 ? "1px solid rgba(255,255,255,.12)" : "none",
+              borderRadius: 16, border: i === 1 ? "1px solid rgba(255,255,255,.12)" : (mob ? "1px solid rgba(255,255,255,.08)" : "none"),
             }}>
-              <div style={{ color: "var(--c-mostarda)", marginBottom: 20 }}>{s.icon}</div>
+              <div style={{ color: "var(--c-mostarda)", marginBottom: 16 }}>{s.icon}</div>
               <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--c-mostarda)", marginBottom: 10 }}>
                 Passo {s.n}
               </div>
-              <div className="serif" style={{ fontSize: 28, lineHeight: 1.05, letterSpacing: "-.01em", marginBottom: 12 }}>
+              <div className="serif" style={{ fontSize: mob ? 22 : 28, lineHeight: 1.05, letterSpacing: "-.01em", marginBottom: 10 }}>
                 {s.title}
               </div>
-              <p style={{ fontSize: 15, lineHeight: 1.55, color: "rgba(244,230,204,.75)", margin: 0 }}>{s.body}</p>
+              <p style={{ fontSize: 14, lineHeight: 1.55, color: "rgba(244,230,204,.75)", margin: 0 }}>{s.body}</p>
             </div>
           ))}
         </div>
@@ -594,6 +602,7 @@ export default function SubscriptionsPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [billing, setBilling] = useState<BillingCycle>("MONTHLY");
+  const mob = useMobile();
 
   useEffect(() => {
     api.get("/subscriptions")
@@ -605,20 +614,20 @@ export default function SubscriptionsPage() {
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--ink)" }}>
       <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
-      <Header />
-      <Hero planCount={plans.length} />
+      <Header mob={mob} />
+      <Hero planCount={plans.length} mob={mob} />
 
-      <main style={{ maxWidth: 1320, margin: "0 auto", padding: "32px 32px 80px" }}>
+      <main style={{ maxWidth: 1320, margin: "0 auto", padding: mob ? "20px 16px 60px" : "32px 32px 80px" }}>
         {/* Section header */}
         <div style={{
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
-          marginBottom: 32, gap: 24, flexWrap: "wrap",
+          marginBottom: mob ? 20 : 32, gap: 24, flexWrap: "wrap",
         }}>
           <div>
             <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 10 }}>
               <span style={{ color: "var(--c-vibra)" }}>§</span>&nbsp; Escolha seu plano
             </div>
-            <h2 className="serif" style={{ margin: 0, fontSize: "clamp(36px, 4vw, 56px)", lineHeight: 1.0, letterSpacing: "-.015em" }}>
+            <h2 className="serif" style={{ margin: 0, fontSize: mob ? "clamp(28px, 7vw, 44px)" : "clamp(36px, 4vw, 56px)", lineHeight: 1.0, letterSpacing: "-.015em" }}>
               {loading ? "—" : plans.length} plano{plans.length !== 1 ? "s" : ""} disponíve{plans.length !== 1 ? "is" : "l"}
             </h2>
           </div>
@@ -629,13 +638,13 @@ export default function SubscriptionsPage() {
 
         {/* Grid */}
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
-            {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3, 1fr)", gap: 20 }}>
+            {Array.from({ length: mob ? 3 : 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : plans.length === 0 ? (
           <EmptyState />
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(auto-fill, minmax(320px, 1fr))", gap: 20 }}>
             {plans.map((plan, i) => (
               <PlanCard key={plan.id} plan={plan} idx={i} billing={billing} role={role} />
             ))}
@@ -643,7 +652,7 @@ export default function SubscriptionsPage() {
         )}
       </main>
 
-      <HowItWorks />
+      <HowItWorks mob={mob} />
 
       <footer style={{ borderTop: "1px solid var(--line)", padding: "24px 32px", fontSize: 12, color: "var(--ink-2)" }}>
         <div style={{ maxWidth: 1320, margin: "0 auto", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>

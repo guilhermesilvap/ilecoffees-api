@@ -1,0 +1,939 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-13T00:00:00.000Z",
+  "__export_source": "ilecoffees-api",
+  "resources": [
+    {
+      "_id": "wrk_ilecoffees",
+      "_type": "workspace",
+      "name": "IleCoffees API",
+      "description": "Colecao completa da API do sistema IleCoffees",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_dev",
+      "_type": "environment",
+      "parentId": "wrk_ilecoffees",
+      "name": "Desenvolvimento",
+      "data": {
+        "base_url": "http://localhost:3000",
+        "token": "",
+        "user_id": "",
+        "supplier_id": "",
+        "coffee_id": "",
+        "subscription_id": "",
+        "order_id": "",
+        "payment_id": "",
+        "course_id": "",
+        "lesson_id": "",
+        "plan_id": ""
+      },
+      "color": "#7B61FF",
+      "isPrivate": false
+    },
+
+    { "_id": "grp_auth",          "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Auth",                "description": "Registro e login" },
+    { "_id": "grp_users",         "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Usuarios",            "description": "Clientes finais" },
+    { "_id": "grp_suppliers",     "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Fornecedores",        "description": "Fornecedores de cafe" },
+    { "_id": "grp_coffees",       "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Cafes",               "description": "Catalogo de cafes" },
+    { "_id": "grp_subscriptions", "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Assinaturas",         "description": "Planos de assinatura de cafe" },
+    { "_id": "grp_cart",          "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Carrinho",            "description": "Carrinho de compras" },
+    { "_id": "grp_orders",        "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Pedidos",             "description": "Pedidos do usuario" },
+    { "_id": "grp_shipping",      "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Frete",               "description": "Calculo de frete via MelhorEnvio" },
+    { "_id": "grp_payments",      "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Pagamentos",          "description": "Criacao e listagem de pagamentos" },
+    { "_id": "grp_courses",       "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Cursos",              "description": "Cursos e aulas" },
+    { "_id": "grp_reviews",       "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Avaliacoes",          "description": "Avaliacoes de cafes e cursos" },
+    { "_id": "grp_plans_pub",     "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Planos de Fornecedor","description": "Listagem publica de planos" },
+    { "_id": "grp_admin",         "_type": "request_group", "parentId": "wrk_ilecoffees", "name": "Admin",               "description": "Rotas exclusivas para administradores (requer token ADMIN)" },
+
+    { "_id": "grp_adm_dash",      "_type": "request_group", "parentId": "grp_admin", "name": "Dashboard" },
+    { "_id": "grp_adm_users",     "_type": "request_group", "parentId": "grp_admin", "name": "Usuarios" },
+    { "_id": "grp_adm_suppliers", "_type": "request_group", "parentId": "grp_admin", "name": "Fornecedores" },
+    { "_id": "grp_adm_coffees",   "_type": "request_group", "parentId": "grp_admin", "name": "Cafes" },
+    { "_id": "grp_adm_subs",      "_type": "request_group", "parentId": "grp_admin", "name": "Assinaturas" },
+    { "_id": "grp_adm_orders",    "_type": "request_group", "parentId": "grp_admin", "name": "Pedidos" },
+    { "_id": "grp_adm_courses",   "_type": "request_group", "parentId": "grp_admin", "name": "Cursos e Aulas" },
+    { "_id": "grp_adm_plans",     "_type": "request_group", "parentId": "grp_admin", "name": "Planos de Fornecedor" },
+    { "_id": "grp_adm_config",    "_type": "request_group", "parentId": "grp_admin", "name": "Configuracoes" },
+
+    {
+      "_id": "req_session_create",
+      "_type": "request",
+      "parentId": "grp_auth",
+      "name": "POST /sessions — Login",
+      "method": "POST",
+      "url": "{{ base_url }}/sessions",
+      "headers": [{ "name": "Content-Type", "value": "application/json" }],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"usuario@exemplo.com\",\n  \"password\": \"Senha123!\"\n}"
+      },
+      "description": "Autentica usuario, fornecedor ou admin. Retorna JWT no campo 'token'."
+    },
+
+    {
+      "_id": "req_user_create",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "POST /users — Criar usuario",
+      "method": "POST",
+      "url": "{{ base_url }}/users",
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "accountType", "value": "INDIVIDUAL" },
+          { "name": "name",        "value": "Maria Silva" },
+          { "name": "email",       "value": "maria@exemplo.com" },
+          { "name": "password",    "value": "Senha123!" },
+          { "name": "phoneNumber", "value": "(11) 99999-8888" },
+          { "name": "cep",         "value": "01310100" },
+          { "name": "street",      "value": "Avenida Paulista" },
+          { "name": "number",      "value": "1000" },
+          { "name": "district",    "value": "Bela Vista" },
+          { "name": "city",        "value": "Sao Paulo" },
+          { "name": "state",       "value": "SP" },
+          { "name": "complement",  "value": "Apto 42" },
+          { "name": "photo",       "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Publica. accountType: INDIVIDUAL | COMPANY. Campo 'photo' e opcional."
+    },
+    {
+      "_id": "req_user_update",
+      "_type": "request",
+      "parentId": "grp_users",
+      "name": "PUT /users/profile — Atualizar perfil",
+      "method": "PUT",
+      "url": "{{ base_url }}/users/profile",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "name",       "value": "Maria Silva Atualizada" },
+          { "name": "cep",        "value": "01310100" },
+          { "name": "street",     "value": "Rua Nova" },
+          { "name": "number",     "value": "50" },
+          { "name": "district",   "value": "Jardins" },
+          { "name": "city",       "value": "Sao Paulo" },
+          { "name": "state",      "value": "SP" },
+          { "name": "photo",      "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Todos os campos sao opcionais."
+    },
+
+    {
+      "_id": "req_supplier_create",
+      "_type": "request",
+      "parentId": "grp_suppliers",
+      "name": "POST /suppliers — Criar fornecedor",
+      "method": "POST",
+      "url": "{{ base_url }}/suppliers",
+      "headers": [],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "name",       "value": "Fazenda Boa Vista" },
+          { "name": "email",      "value": "contato@fazenda.com" },
+          { "name": "password",   "value": "Senha123!" },
+          { "name": "cep",        "value": "37540000" },
+          { "name": "street",     "value": "Estrada da Fazenda" },
+          { "name": "number",     "value": "s/n" },
+          { "name": "district",   "value": "Zona Rural" },
+          { "name": "city",       "value": "Santa Rita do Sapucai" },
+          { "name": "state",      "value": "MG" },
+          { "name": "complement", "value": "" },
+          { "name": "photo",      "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Publica. Campo 'photo' e opcional."
+    },
+    {
+      "_id": "req_supplier_update",
+      "_type": "request",
+      "parentId": "grp_suppliers",
+      "name": "PUT /suppliers/profile — Atualizar perfil",
+      "method": "PUT",
+      "url": "{{ base_url }}/suppliers/profile",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "name",   "value": "Fazenda Boa Vista Ltda" },
+          { "name": "cep",    "value": "37540000" },
+          { "name": "street", "value": "Estrada Principal" },
+          { "name": "number", "value": "100" },
+          { "name": "photo",  "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Requer token SUPPLIER. Todos os campos sao opcionais."
+    },
+
+    {
+      "_id": "req_coffee_list",
+      "_type": "request",
+      "parentId": "grp_coffees",
+      "name": "GET /coffees — Listar cafes",
+      "method": "GET",
+      "url": "{{ base_url }}/coffees",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "parameters": [
+        { "name": "name",        "value": "", "disabled": true },
+        { "name": "variety",     "value": "", "disabled": true },
+        { "name": "region",      "value": "", "disabled": true },
+        { "name": "roast",       "value": "", "disabled": true },
+        { "name": "process",     "value": "", "disabled": true },
+        { "name": "saleType",    "value": "KG", "disabled": true },
+        { "name": "supplierId",  "value": "", "disabled": true }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Fornecedores so verao seus proprios cafes. Filtros via query string."
+    },
+    {
+      "_id": "req_coffee_create",
+      "_type": "request",
+      "parentId": "grp_coffees",
+      "name": "POST /coffees — Criar cafe",
+      "method": "POST",
+      "url": "{{ base_url }}/coffees",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "name",          "value": "Bourbon Amarelo Natural" },
+          { "name": "description",   "value": "Cafe encorpado com notas de chocolate" },
+          { "name": "variety",       "value": "Bourbon Amarelo" },
+          { "name": "process",       "value": "Natural" },
+          { "name": "region",        "value": "Sul de Minas" },
+          { "name": "altitude",      "value": "1100" },
+          { "name": "farm",          "value": "Fazenda Bela Vista" },
+          { "name": "producer",      "value": "Joao Santos" },
+          { "name": "score",         "value": "84" },
+          { "name": "sensory",       "value": "Chocolate, caramelo, nozes" },
+          { "name": "roast",         "value": "Medio" },
+          { "name": "saleType",      "value": "KG" },
+          { "name": "pricePerKg",    "value": "65.00" },
+          { "name": "stock",         "value": "50" },
+          { "name": "weightGrams",   "value": "1000" },
+          { "name": "heightCm",      "value": "20" },
+          { "name": "widthCm",       "value": "10" },
+          { "name": "lengthCm",      "value": "5" },
+          { "name": "photo",         "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Requer token SUPPLIER. Para saleType=PACKAGE use packagePrice e packageWeight ao inves de pricePerKg."
+    },
+    {
+      "_id": "req_coffee_update",
+      "_type": "request",
+      "parentId": "grp_coffees",
+      "name": "PUT /coffees/:id — Atualizar cafe",
+      "method": "PUT",
+      "url": "{{ base_url }}/coffees/{{ coffee_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "name",        "value": "Bourbon Amarelo Natural Premium" },
+          { "name": "pricePerKg",  "value": "72.00" },
+          { "name": "stock",       "value": "30" },
+          { "name": "photo",       "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Requer token SUPPLIER (somente proprio cafe) ou SUPERADMIN. Todos os campos sao opcionais."
+    },
+    {
+      "_id": "req_coffee_delete",
+      "_type": "request",
+      "parentId": "grp_coffees",
+      "name": "DELETE /coffees/:id — Deletar cafe",
+      "method": "DELETE",
+      "url": "{{ base_url }}/coffees/{{ coffee_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Requer token SUPPLIER (somente proprio cafe). Soft delete."
+    },
+
+    {
+      "_id": "req_sub_list",
+      "_type": "request",
+      "parentId": "grp_subscriptions",
+      "name": "GET /subscriptions — Listar assinaturas",
+      "method": "GET",
+      "url": "{{ base_url }}/subscriptions",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "parameters": [
+        { "name": "name",         "value": "", "disabled": true },
+        { "name": "monthlyPrice", "value": "", "disabled": true },
+        { "name": "annualPrice",  "value": "", "disabled": true },
+        { "name": "supplierId",   "value": "", "disabled": true }
+      ],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_sub_create",
+      "_type": "request",
+      "parentId": "grp_subscriptions",
+      "name": "POST /subscriptions — Criar assinatura",
+      "method": "POST",
+      "url": "{{ base_url }}/subscriptions",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Assinatura Premium\",\n  \"description\": \"Selecao mensal dos melhores cafes especiais\",\n  \"monthlyPrice\": 149.90,\n  \"annualPrice\": 1499.00,\n  \"quantity\": 1,\n  \"coffeeIds\": [\"{{ coffee_id }}\"]\n}"
+      },
+      "description": "Requer token SUPPLIER. coffeeIds: array de UUIDs de cafes do proprio fornecedor."
+    },
+    {
+      "_id": "req_sub_update",
+      "_type": "request",
+      "parentId": "grp_subscriptions",
+      "name": "PUT /subscriptions/:id — Atualizar assinatura",
+      "method": "PUT",
+      "url": "{{ base_url }}/subscriptions/{{ subscription_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Assinatura Premium Plus\",\n  \"monthlyPrice\": 179.90,\n  \"annualPrice\": 1799.00\n}"
+      },
+      "description": "Requer token SUPPLIER. Todos os campos sao opcionais."
+    },
+    {
+      "_id": "req_sub_delete",
+      "_type": "request",
+      "parentId": "grp_subscriptions",
+      "name": "DELETE /subscriptions/:id — Deletar assinatura",
+      "method": "DELETE",
+      "url": "{{ base_url }}/subscriptions/{{ subscription_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Requer token SUPPLIER. Soft delete."
+    },
+
+    {
+      "_id": "req_cart_list",
+      "_type": "request",
+      "parentId": "grp_cart",
+      "name": "GET /cart — Ver carrinho",
+      "method": "GET",
+      "url": "{{ base_url }}/cart",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_cart_add",
+      "_type": "request",
+      "parentId": "grp_cart",
+      "name": "POST /cart/items — Adicionar item",
+      "method": "POST",
+      "url": "{{ base_url }}/cart/items",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"coffeeId\": \"{{ coffee_id }}\",\n  \"quantity\": 2\n}"
+      },
+      "description": "Se o cafe ja estiver no carrinho, atualiza a quantidade."
+    },
+    {
+      "_id": "req_cart_remove",
+      "_type": "request",
+      "parentId": "grp_cart",
+      "name": "DELETE /cart/items/:coffeeId — Remover item",
+      "method": "DELETE",
+      "url": "{{ base_url }}/cart/items/{{ coffee_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+
+    {
+      "_id": "req_order_list",
+      "_type": "request",
+      "parentId": "grp_orders",
+      "name": "GET /orders — Listar pedidos",
+      "method": "GET",
+      "url": "{{ base_url }}/orders",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_order_create",
+      "_type": "request",
+      "parentId": "grp_orders",
+      "name": "POST /orders — Criar pedido (carrinho)",
+      "method": "POST",
+      "url": "{{ base_url }}/orders",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"deliveryCep\": \"01310100\",\n  \"shippingChoices\": [\n    {\n      \"supplierId\": \"{{ supplier_id }}\",\n      \"carrier\": \"Correios PAC\",\n      \"shippingCost\": 18.50,\n      \"deadlineDays\": 7\n    }\n  ]\n}"
+      },
+      "description": "Converte o carrinho em pedidos. shippingChoices e deliveryCep sao opcionais. Limpa o carrinho apos criar."
+    },
+    {
+      "_id": "req_order_subscribe",
+      "_type": "request",
+      "parentId": "grp_orders",
+      "name": "POST /orders/subscribe — Assinar plano",
+      "method": "POST",
+      "url": "{{ base_url }}/orders/subscribe",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"subscriptionId\": \"{{ subscription_id }}\",\n  \"billingCycle\": \"MONTHLY\"\n}"
+      },
+      "description": "billingCycle: MONTHLY | ANNUAL"
+    },
+    {
+      "_id": "req_order_show",
+      "_type": "request",
+      "parentId": "grp_orders",
+      "name": "GET /orders/:id — Detalhar pedido",
+      "method": "GET",
+      "url": "{{ base_url }}/orders/{{ order_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_order_cancel",
+      "_type": "request",
+      "parentId": "grp_orders",
+      "name": "PATCH /orders/:id/cancel — Cancelar pedido",
+      "method": "PATCH",
+      "url": "{{ base_url }}/orders/{{ order_id }}/cancel",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+
+    {
+      "_id": "req_shipping_estimate",
+      "_type": "request",
+      "parentId": "grp_shipping",
+      "name": "GET /shipping/estimate — Calcular frete",
+      "method": "GET",
+      "url": "{{ base_url }}/shipping/estimate",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "parameters": [
+        { "name": "cep", "value": "01310100" }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Calcula frete para os itens no carrinho. CEP obrigatorio. Retorna opcoes agrupadas por fornecedor."
+    },
+
+    {
+      "_id": "req_payment_list",
+      "_type": "request",
+      "parentId": "grp_payments",
+      "name": "GET /payments — Listar pagamentos",
+      "method": "GET",
+      "url": "{{ base_url }}/payments",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_payment_create",
+      "_type": "request",
+      "parentId": "grp_payments",
+      "name": "POST /payments — Criar pagamento",
+      "method": "POST",
+      "url": "{{ base_url }}/payments",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"orderId\": \"{{ order_id }}\",\n  \"method\": \"PIX\"\n}"
+      },
+      "description": "method: CREDIT_CARD | PIX | BOLETO | MERCADO_PAGO | STRIPE"
+    },
+
+    {
+      "_id": "req_course_list",
+      "_type": "request",
+      "parentId": "grp_courses",
+      "name": "GET /courses — Listar cursos",
+      "method": "GET",
+      "url": "{{ base_url }}/courses",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_course_enrollments",
+      "_type": "request",
+      "parentId": "grp_courses",
+      "name": "GET /courses/my-enrollments — Meus cursos",
+      "method": "GET",
+      "url": "{{ base_url }}/courses/my-enrollments",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_course_show",
+      "_type": "request",
+      "parentId": "grp_courses",
+      "name": "GET /courses/:id — Detalhar curso",
+      "method": "GET",
+      "url": "{{ base_url }}/courses/{{ course_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Retorna curso com aulas. Aulas bloqueadas (isLocked=true) exigem inscricao paga."
+    },
+    {
+      "_id": "req_course_progress",
+      "_type": "request",
+      "parentId": "grp_courses",
+      "name": "GET /courses/:id/progress — Progresso do curso",
+      "method": "GET",
+      "url": "{{ base_url }}/courses/{{ course_id }}/progress",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Retorna totalLessons, completedLessons, completionPercent e status de cada aula."
+    },
+    {
+      "_id": "req_course_enroll",
+      "_type": "request",
+      "parentId": "grp_courses",
+      "name": "POST /courses/:id/enroll — Matricular-se",
+      "method": "POST",
+      "url": "{{ base_url }}/courses/{{ course_id }}/enroll",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Cria pedido do tipo COURSE para o usuario. Pagar o pedido libera o acesso."
+    },
+    {
+      "_id": "req_lesson_complete",
+      "_type": "request",
+      "parentId": "grp_courses",
+      "name": "PATCH /courses/:id/lessons/:lessonId/complete — Concluir aula",
+      "method": "PATCH",
+      "url": "{{ base_url }}/courses/{{ course_id }}/lessons/{{ lesson_id }}/complete",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Requer inscricao paga. Idempotente — marcar novamente nao duplica."
+    },
+
+    {
+      "_id": "req_review_list_coffee",
+      "_type": "request",
+      "parentId": "grp_reviews",
+      "name": "GET /coffees/:id/reviews — Avaliacoes do cafe",
+      "method": "GET",
+      "url": "{{ base_url }}/coffees/{{ coffee_id }}/reviews",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_review_create_coffee",
+      "_type": "request",
+      "parentId": "grp_reviews",
+      "name": "POST /coffees/:id/reviews — Avaliar cafe",
+      "method": "POST",
+      "url": "{{ base_url }}/coffees/{{ coffee_id }}/reviews",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"rating\": 5,\n  \"comment\": \"Cafe excepcional, aroma incrivel!\"\n}"
+      },
+      "description": "Requer token USER. rating: 1-5. Re-enviar atualiza a avaliacao existente."
+    },
+    {
+      "_id": "req_review_list_course",
+      "_type": "request",
+      "parentId": "grp_reviews",
+      "name": "GET /courses/:id/reviews — Avaliacoes do curso",
+      "method": "GET",
+      "url": "{{ base_url }}/courses/{{ course_id }}/reviews",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_review_create_course",
+      "_type": "request",
+      "parentId": "grp_reviews",
+      "name": "POST /courses/:id/reviews — Avaliar curso",
+      "method": "POST",
+      "url": "{{ base_url }}/courses/{{ course_id }}/reviews",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"rating\": 4,\n  \"comment\": \"Conteudo muito bem estruturado!\"\n}"
+      },
+      "description": "Requer token USER e inscricao paga no curso. Re-enviar atualiza a avaliacao."
+    },
+
+    {
+      "_id": "req_plans_list",
+      "_type": "request",
+      "parentId": "grp_plans_pub",
+      "name": "GET /supplier-plans — Listar planos",
+      "method": "GET",
+      "url": "{{ base_url }}/supplier-plans",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Disponivel para todos os usuarios autenticados."
+    },
+
+    {
+      "_id": "req_adm_dash",
+      "_type": "request",
+      "parentId": "grp_adm_dash",
+      "name": "GET /admin/dashboard — Estatisticas gerais",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/dashboard",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Retorna: totalUsers, totalSuppliers (ativos/inativos), totalCoffees, totalSubscriptions, totalCourses, totalOrders, totalRevenue, recentOrders, topCoffees, etc."
+    },
+    {
+      "_id": "req_adm_revenue",
+      "_type": "request",
+      "parentId": "grp_adm_dash",
+      "name": "GET /admin/dashboard/revenue — Receita por periodo",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/dashboard/revenue",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "parameters": [
+        { "name": "period", "value": "monthly" },
+        { "name": "limit",  "value": "12" }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "period: monthly | weekly. limit: 1-52 (default 12). Retorna serie temporal de receita."
+    },
+
+    {
+      "_id": "req_adm_create",
+      "_type": "request",
+      "parentId": "grp_adm_config",
+      "name": "POST /admin — Criar administrador",
+      "method": "POST",
+      "url": "{{ base_url }}/admin",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Admin Principal\",\n  \"email\": \"admin@ilecoffees.com\",\n  \"password\": \"Admin123!\"\n}"
+      }
+    },
+
+    {
+      "_id": "req_adm_user_list",
+      "_type": "request",
+      "parentId": "grp_adm_users",
+      "name": "GET /admin/users — Listar usuarios",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/users",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_adm_user_delete",
+      "_type": "request",
+      "parentId": "grp_adm_users",
+      "name": "DELETE /admin/users/:id — Deletar usuario",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/users/{{ user_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+
+    {
+      "_id": "req_adm_supplier_list",
+      "_type": "request",
+      "parentId": "grp_adm_suppliers",
+      "name": "GET /admin/suppliers — Listar fornecedores",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/suppliers",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "parameters": [
+        { "name": "isActive", "value": "true", "disabled": true }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Filtro opcional: isActive=true | false"
+    },
+    {
+      "_id": "req_adm_supplier_delete",
+      "_type": "request",
+      "parentId": "grp_adm_suppliers",
+      "name": "DELETE /admin/suppliers/:id — Deletar fornecedor",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/suppliers/{{ supplier_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_adm_supplier_status",
+      "_type": "request",
+      "parentId": "grp_adm_suppliers",
+      "name": "PATCH /admin/suppliers/:id/status — Ativar/Desativar",
+      "method": "PATCH",
+      "url": "{{ base_url }}/admin/suppliers/{{ supplier_id }}/status",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"isActive\": false\n}"
+      }
+    },
+    {
+      "_id": "req_adm_supplier_plan",
+      "_type": "request",
+      "parentId": "grp_adm_suppliers",
+      "name": "PATCH /admin/suppliers/:id/plan — Atribuir plano",
+      "method": "PATCH",
+      "url": "{{ base_url }}/admin/suppliers/{{ supplier_id }}/plan",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"planId\": \"{{ plan_id }}\"\n}"
+      },
+      "description": "Envie planId: null para remover o plano do fornecedor."
+    },
+
+    {
+      "_id": "req_adm_coffee_delete",
+      "_type": "request",
+      "parentId": "grp_adm_coffees",
+      "name": "DELETE /admin/coffees/:id — Deletar cafe",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/coffees/{{ coffee_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Admin pode deletar qualquer cafe. Soft delete."
+    },
+
+    {
+      "_id": "req_adm_sub_delete",
+      "_type": "request",
+      "parentId": "grp_adm_subs",
+      "name": "DELETE /admin/subscriptions/:id — Deletar assinatura",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/subscriptions/{{ subscription_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Admin pode deletar qualquer assinatura. Soft delete."
+    },
+
+    {
+      "_id": "req_adm_order_list",
+      "_type": "request",
+      "parentId": "grp_adm_orders",
+      "name": "GET /admin/orders — Listar todos os pedidos",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/orders",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "parameters": [
+        { "name": "status", "value": "PENDING",      "disabled": true },
+        { "name": "type",   "value": "ONE_TIME",      "disabled": true }
+      ],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "status: PENDING | PAID | SHIPPED | DELIVERED | CANCELED. type: ONE_TIME | SUBSCRIPTION | COURSE."
+    },
+    {
+      "_id": "req_adm_order_status",
+      "_type": "request",
+      "parentId": "grp_adm_orders",
+      "name": "PATCH /admin/orders/:id/status — Atualizar status",
+      "method": "PATCH",
+      "url": "{{ base_url }}/admin/orders/{{ order_id }}/status",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"SHIPPED\"\n}"
+      },
+      "description": "status: SHIPPED | DELIVERED | CANCELED"
+    },
+
+    {
+      "_id": "req_adm_course_create",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "POST /admin/courses — Criar curso",
+      "method": "POST",
+      "url": "{{ base_url }}/admin/courses",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "title",          "value": "Introducao ao Cafe Especial" },
+          { "name": "description",    "value": "Aprenda tudo sobre o mundo do cafe especial" },
+          { "name": "price",          "value": "199.90" },
+          { "name": "workloadHours",  "value": "10" },
+          { "name": "level",          "value": "BEGINNER" },
+          { "name": "photo",          "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "level: BEGINNER | INTERMEDIATE | ADVANCED. Campo 'photo' e opcional."
+    },
+    {
+      "_id": "req_adm_course_update",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "PUT /admin/courses/:id — Atualizar curso",
+      "method": "PUT",
+      "url": "{{ base_url }}/admin/courses/{{ course_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": {
+        "mimeType": "multipart/form-data",
+        "params": [
+          { "name": "title",  "value": "Introducao ao Cafe Especial - Edicao Atualizada" },
+          { "name": "price",  "value": "249.90" },
+          { "name": "photo",  "value": "", "type": "file", "fileName": "" }
+        ]
+      },
+      "description": "Todos os campos sao opcionais."
+    },
+    {
+      "_id": "req_adm_course_delete",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "DELETE /admin/courses/:id — Deletar curso",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/courses/{{ course_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_adm_course_enrollments",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "GET /admin/courses/:id/enrollments — Inscricoes do curso",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/courses/{{ course_id }}/enrollments",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_adm_lesson_create",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "POST /admin/courses/:id/lessons — Criar aula",
+      "method": "POST",
+      "url": "{{ base_url }}/admin/courses/{{ course_id }}/lessons",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Aula 1 - Historia do Cafe\",\n  \"description\": \"Conhca a origem e a evolucao do cafe no mundo\",\n  \"videoUrl\": \"https://vimeo.com/123456789\",\n  \"order\": 1,\n  \"isLocked\": true,\n  \"durationMinutes\": 15\n}"
+      },
+      "description": "isLocked: true = apenas inscritos pagos. order define a sequencia das aulas."
+    },
+    {
+      "_id": "req_adm_lesson_update",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "PUT /admin/courses/:id/lessons/:lessonId — Atualizar aula",
+      "method": "PUT",
+      "url": "{{ base_url }}/admin/courses/{{ course_id }}/lessons/{{ lesson_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Aula 1 - Historia do Cafe (Revisada)\",\n  \"durationMinutes\": 18,\n  \"isLocked\": false\n}"
+      },
+      "description": "Todos os campos sao opcionais."
+    },
+    {
+      "_id": "req_adm_lesson_delete",
+      "_type": "request",
+      "parentId": "grp_adm_courses",
+      "name": "DELETE /admin/courses/:id/lessons/:lessonId — Deletar aula",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/courses/{{ course_id }}/lessons/{{ lesson_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+
+    {
+      "_id": "req_adm_plan_list",
+      "_type": "request",
+      "parentId": "grp_adm_plans",
+      "name": "GET /admin/supplier-plans — Listar planos",
+      "method": "GET",
+      "url": "{{ base_url }}/admin/supplier-plans",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" }
+    },
+    {
+      "_id": "req_adm_plan_create",
+      "_type": "request",
+      "parentId": "grp_adm_plans",
+      "name": "POST /admin/supplier-plans — Criar plano",
+      "method": "POST",
+      "url": "{{ base_url }}/admin/supplier-plans",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Plano Starter\",\n  \"description\": \"Ideal para pequenos produtores que estao comecando\",\n  \"price\": 49.90,\n  \"maxProducts\": 5\n}"
+      },
+      "description": "maxProducts: null = ilimitado."
+    },
+    {
+      "_id": "req_adm_plan_update",
+      "_type": "request",
+      "parentId": "grp_adm_plans",
+      "name": "PUT /admin/supplier-plans/:id — Atualizar plano",
+      "method": "PUT",
+      "url": "{{ base_url }}/admin/supplier-plans/{{ plan_id }}",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ token }}" },
+        { "name": "Content-Type",  "value": "application/json" }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Plano Starter Plus\",\n  \"price\": 59.90,\n  \"maxProducts\": 10\n}"
+      },
+      "description": "Todos os campos sao opcionais."
+    },
+    {
+      "_id": "req_adm_plan_delete",
+      "_type": "request",
+      "parentId": "grp_adm_plans",
+      "name": "DELETE /admin/supplier-plans/:id — Deletar plano",
+      "method": "DELETE",
+      "url": "{{ base_url }}/admin/supplier-plans/{{ plan_id }}",
+      "headers": [{ "name": "Authorization", "value": "Bearer {{ token }}" }],
+      "body": { "mimeType": "application/octet-stream" },
+      "description": "Soft delete. Remove o plano de todos os fornecedores vinculados antes de deletar."
+    }
+  ]
+}

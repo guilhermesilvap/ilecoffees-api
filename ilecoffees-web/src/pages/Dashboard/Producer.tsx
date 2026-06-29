@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AddCoffeeForm, CoffeeInitialData } from "@/components/Dashboard/AddCoffeeForm";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useMobile } from "@/contexts/MobileContext";
+import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
+import { StatCard } from "@/components/Dashboard/StatCard";
 
 type Coffee = CoffeeInitialData;
 
@@ -22,37 +25,6 @@ interface Order {
   coffee?: { name: string; photoUrl?: string | null };
 }
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
-
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <Link to="/" style={{ display: "inline-flex", alignItems: "baseline", gap: 6, textDecoration: "none", color: light ? "var(--c-leveza)" : "var(--ink)" }}>
-      <span className="script" style={{ fontSize: 40, lineHeight: 0.8 }}>íle</span>
-      <span className="serif italic" style={{ fontSize: 13, color: light ? "rgba(255,255,255,.6)" : "var(--c-vibra)" }}>coffees</span>
-    </Link>
-  );
-}
-
-function StatCard({ label, value, sub }: { label: string; value: string | number; sub: string }) {
-  return (
-    <div style={{
-      padding: "24px 28px", borderRadius: 16, background: "var(--paper)",
-      border: "1px solid var(--line)", boxShadow: "0 8px 24px -16px rgba(28,8,16,.18)",
-    }}>
-      <div className="mono" style={{ fontSize: 10, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>{label}</div>
-      <div className="serif" style={{ fontSize: 44, lineHeight: 1, letterSpacing: "-.02em", marginTop: 8 }}>{value}</div>
-      <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 6 }}>{sub}</div>
-    </div>
-  );
-}
 
 const TABS = ["Visão Geral", "Meus Cafés", "Estoque", "Pedidos", "Relatórios", "Perfil"] as const;
 type Tab = typeof TABS[number];
@@ -307,7 +279,7 @@ export default function ProducerDashboard() {
   const [profileMsg, setProfileMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const mob = useIsMobile();
+  const mob = useMobile();
 
   const firstName = user?.name?.split(" ")[0] ?? "Produtor";
   const lastName = user?.name?.split(" ")[1] ?? "";
@@ -420,7 +392,7 @@ export default function ProducerDashboard() {
           height: "100vh", overflowY: "auto",
         }}>
           <div style={{ padding: "22px 20px 14px" }}>
-            <Logo light />
+            <DashboardLogo light />
           </div>
           <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "0 16px 4px" }} />
           <div style={{ padding: "14px 16px 12px", display: "flex", alignItems: "center", gap: 10 }}>
@@ -475,7 +447,7 @@ export default function ProducerDashboard() {
         {/* Mobile: top bar */}
         {mob && (
           <header style={{ flexShrink: 0, background: "var(--c-glamour)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Logo light />
+            <DashboardLogo light />
             <button onClick={() => setMobMenuOpen(o => !o)} style={{ background: "none", border: 0, color: "var(--c-leveza)", cursor: "pointer", padding: 4 }}>
               <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
@@ -532,7 +504,7 @@ export default function ProducerDashboard() {
             .reduce((s, o) => s + o.totalPrice, 0);
           return (
           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-            <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, 1fr)" : "repeat(4, 1fr)", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4, 1fr)", gap: 16 }}>
               <StatCard label="Cafés ativos" value={coffees.length} sub="lotes cadastrados" />
               <StatCard label="Pendentes" value={pendingCount} sub="aguardando pagamento" />
               <StatCard label="Receita total" value={fmt(totalRevenue)} sub="pedidos pagos" />
@@ -644,7 +616,7 @@ export default function ProducerDashboard() {
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
               {/* Summary cards */}
-              <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2,1fr)" : "repeat(4,1fr)", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4,1fr)", gap: 16 }}>
                 <StatCard label="Lotes ativos" value={coffees.length} sub="cafés cadastrados" />
                 <StatCard label="Estoque total" value={`${coffees.reduce((s, c) => s + (c.stock ?? 0), 0)} kg`} sub="soma de todos os lotes" />
                 <StatCard label="Estoque baixo" value={lowStock.length} sub={`abaixo de ${LOW_STOCK_KG} kg`} />

@@ -1,8 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+﻿import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AddCoffeeForm, CoffeeInitialData } from "@/components/Dashboard/AddCoffeeForm";
+import { useMobile } from "@/contexts/MobileContext";
+import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
 
 interface Coffee {
   id: string;
@@ -32,14 +34,6 @@ const LINE_INK2  = { Raros: "rgba(216,234,208,.55)", Extraordinários: "var(--in
 const LINE_ACCENT = { Raros: "var(--c-mostarda)", Extraordinários: "var(--c-vibra)", Origens: "var(--c-vibra)" };
 const LINE_BORDER = { Raros: "rgba(255,255,255,.07)", Extraordinários: "rgba(15,35,21,.15)", Origens: "var(--line)" };
 
-function Logo({ light = false }: { light?: boolean }) {
-  return (
-    <Link to="/dashboard/supplier" style={{ display: "inline-flex", alignItems: "baseline", gap: 6, textDecoration: "none", color: light ? "var(--c-leveza)" : "var(--ink)" }}>
-      <span className="script" style={{ fontSize: 40, lineHeight: 0.8 }}>íle</span>
-      <span className="serif italic" style={{ fontSize: 13, color: light ? "rgba(255,255,255,.6)" : "var(--c-vibra)" }}>coffees</span>
-    </Link>
-  );
-}
 
 const TABS = ["Visão Geral", "Produtos", "Estoque", "Assinaturas", "Cursos", "Pedidos", "Relatórios", "Perfil"] as const;
 type Tab = typeof TABS[number];
@@ -153,20 +147,11 @@ function CoffeeCard({ c, onRefresh }: { c: Coffee; onRefresh: () => void }) {
   );
 }
 
-function useIsMobile(bp = 768) {
-  const [m, setM] = useState(() => typeof window !== "undefined" && window.innerWidth < bp);
-  useEffect(() => {
-    const h = () => setM(window.innerWidth < bp);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, [bp]);
-  return m;
-}
 
 export default function SupplierCatalog() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const mob = useIsMobile();
+  const mob = useMobile();
   const firstName = user?.name?.split(" ")[0] ?? "Fornecedor";
   const lastName = user?.name?.split(" ")[1] ?? "";
   const initials = ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase();
@@ -209,7 +194,7 @@ export default function SupplierCatalog() {
           height: "100vh", overflowY: "auto",
         }}>
           <div style={{ padding: "22px 20px 14px" }}>
-            <Logo light />
+            <DashboardLogo light to="/dashboard/supplier" />
           </div>
           <div style={{ height: 1, background: "rgba(255,255,255,.08)", margin: "0 16px 4px" }} />
           <div style={{ padding: "14px 16px 12px", display: "flex", alignItems: "center", gap: 10 }}>
@@ -271,7 +256,7 @@ export default function SupplierCatalog() {
         {/* Mobile: top bar */}
         {mob && (
           <header style={{ flexShrink: 0, background: "var(--c-glamour)", padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <Logo light />
+            <DashboardLogo light to="/dashboard/supplier" />
             <button onClick={() => setMobMenuOpen(o => !o)} style={{ background: "none", border: 0, color: "var(--c-leveza)", cursor: "pointer", padding: 4 }}>
               <svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>

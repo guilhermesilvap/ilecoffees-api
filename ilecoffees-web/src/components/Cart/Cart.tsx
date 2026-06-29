@@ -1,7 +1,9 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "@/contexts/CartContext";
+
 import { api } from "@/lib/api";
+import { useMobile } from "@/contexts/MobileContext";
 
 const fmt = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -30,6 +32,7 @@ interface CartProps {
 export function Cart({ isOpen, onClose, onCheckout }: CartProps) {
   const { items, count, total, refresh, removeItem } = useCart();
   const panelRef = useRef<HTMLDivElement>(null);
+  const mob = useMobile();
 
   useEffect(() => {
     if (isOpen) refresh();
@@ -79,27 +82,42 @@ export function Cart({ isOpen, onClose, onCheckout }: CartProps) {
           from { opacity: 0; transform: translateY(-8px) scale(.98); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes cartSlideUp {
+          from { transform: translateY(100%); }
+          to   { transform: translateY(0); }
+        }
       `}</style>
 
-      {/* Subtle backdrop — just dims slightly, doesn't cover fully */}
       <div
         onClick={onClose}
         style={{
           position: "fixed", inset: 0, zIndex: 9988,
-          background: "rgba(28,8,16,.12)",
+          background: mob ? "rgba(28,8,16,.40)" : "rgba(28,8,16,.12)",
         }}
       />
 
-      {/* Panel — anchored top-right, below header */}
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-label="Carrinho"
-        style={{
+        style={mob ? {
           position: "fixed",
-          top: 76,
-          right: 24,
+          bottom: 0, left: 0, right: 0,
+          zIndex: 9989,
+          maxHeight: "88vh",
+          background: "var(--paper)",
+          borderRadius: "18px 18px 0 0",
+          border: "1px solid var(--line)",
+          borderBottom: "none",
+          boxShadow: "0 -8px 40px rgba(28,8,16,.22)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          animation: "cartSlideUp .22s cubic-bezier(.2,.8,.4,1)",
+        } : {
+          position: "fixed",
+          top: 76, right: 24,
           zIndex: 9989,
           width: "min(420px, calc(100vw - 32px))",
           maxHeight: "calc(100vh - 100px)",
@@ -113,9 +131,16 @@ export function Cart({ isOpen, onClose, onCheckout }: CartProps) {
           animation: "cartSlideIn .18s cubic-bezier(.2,.8,.4,1)",
         }}
       >
+        {/* Drag handle — mobile only */}
+        {mob && (
+          <div style={{ display: "flex", justifyContent: "center", padding: "12px 0 4px", flexShrink: 0 }} onClick={onClose}>
+            <div style={{ width: 36, height: 4, borderRadius: 999, background: "var(--line)" }} />
+          </div>
+        )}
+
         {/* Header */}
         <div style={{
-          padding: "16px 20px 14px",
+          padding: mob ? "8px 20px 14px" : "16px 20px 14px",
           borderBottom: "1px solid var(--line)",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           flexShrink: 0,
@@ -186,7 +211,7 @@ export function Cart({ isOpen, onClose, onCheckout }: CartProps) {
                 const unitLabel = c.saleType === "KG"
                   ? `${fmt(unitPrice)}/kg`
                   : c.packageWeight
-                    ? `${(c.packageWeight * 1000).toFixed(0)}g`
+                    ? `${c.packageWeight}g`
                     : "Pacote";
                 const isKg = c.saleType === "KG";
                 const step = isKg ? 0.5 : 1;

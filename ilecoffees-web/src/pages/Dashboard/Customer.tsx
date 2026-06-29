@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Link, NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMobile } from "@/contexts/MobileContext";
 import OrderDetailModal from "@/components/OrderDetailModal";
 
 interface Order {
@@ -114,6 +115,7 @@ function IconUser()    { return <svg width="16" height="16" viewBox="0 0 16 16" 
 function IconLogout()  { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M9 3H4a1 1 0 00-1 1v8a1 1 0 001 1h5M11 5l3 3-3 3M14 8H7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>; }
 function IconSettings(){ return <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2" stroke="currentColor" strokeWidth="1.3"/><path d="M8 1.5v2M8 12.5v2M3.5 3.5l1.4 1.4M11.1 11.1l1.4 1.4M1.5 8h2M12.5 8h2M3.5 12.5l1.4-1.4M11.1 4.9l1.4-1.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>; }
 function IconHeart({ filled = false }: { filled?: boolean }) { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 13.5S2 9.5 2 5.5a3 3 0 016 0 3 3 0 016 0c0 4-6 8-6 8z" fill={filled ? "var(--c-vibra)" : "none"} stroke={filled ? "var(--c-vibra)" : "currentColor"} strokeWidth="1.3" strokeLinejoin="round"/></svg>; }
+function IconShop()    { return <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 5h12l-1 8H3L2 5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M5 5V4a3 3 0 016 0v1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>; }
 
 /* ── Avatar ── */
 function Avatar({ photoUrl, initial, size, bg, color }: { photoUrl?: string | null; initial: string; size: number; bg: string; color: string }) {
@@ -147,6 +149,7 @@ function DropdownItem({ icon, label, danger, onClick }: { icon: React.ReactNode;
 function DashHeader({ userName, accountType, photoUrl, onLogout, onNavigate }: { userName: string; accountType: string; photoUrl?: string | null; onLogout: () => void; onNavigate: (tab: TabId) => void }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const mob = useMobile();
   const initial = getInitials(userName);
 
   useEffect(() => {
@@ -164,28 +167,32 @@ function DashHeader({ userName, accountType, photoUrl, onLogout, onNavigate }: {
       borderBottom: "1px solid var(--line)",
     }}>
       <div style={{
-        maxWidth: 1320, margin: "0 auto", padding: "16px 32px",
-        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 24,
+        maxWidth: 1320, margin: "0 auto", padding: mob ? "12px 16px" : "16px 32px",
+        display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: mob ? 12 : 24,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
           <Link to="/" style={{ display: "inline-flex", alignItems: "baseline", gap: 6, textDecoration: "none", color: "inherit" }}>
-            <span className="script" style={{ fontSize: 36, lineHeight: 0.75 }}>íle</span>
-            <span className="serif italic" style={{ fontSize: 13, lineHeight: 1, color: "var(--c-vibra)" }}>coffees</span>
+            <span className="script" style={{ fontSize: mob ? 28 : 36, lineHeight: 0.75 }}>íle</span>
+            <span className="serif italic" style={{ fontSize: mob ? 10 : 13, lineHeight: 1, color: "var(--c-vibra)" }}>coffees</span>
           </Link>
-          <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
-          <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
-            <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
-            <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
-          </nav>
+          {!mob && (
+            <>
+              <span style={{ width: 1, height: 22, background: "var(--ink)", opacity: 0.2 }} />
+              <nav style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <NavLink to="/explore" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Catálogo</NavLink>
+                <NavLink to="/courses" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Cursos</NavLink>
+                <NavLink to="/subscriptions" className="mono" style={({ isActive }) => ({ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase" as const, color: isActive ? "var(--ink)" : "var(--ink-2)", textDecoration: "none", borderBottom: isActive ? "1.5px solid var(--ink)" : "1.5px solid transparent", paddingBottom: 1 })}>Assinaturas</NavLink>
+              </nav>
+            </>
+          )}
         </div>
 
         <div />
 
         <div ref={wrapRef} style={{ position: "relative" }}>
           <button onClick={() => setOpen(o => !o)} style={{
-            display: "inline-flex", alignItems: "center", gap: 10,
-            padding: "6px 14px 6px 6px", borderRadius: 999,
+            display: "inline-flex", alignItems: "center", gap: mob ? 0 : 10,
+            padding: mob ? "4px" : "6px 14px 6px 6px", borderRadius: 999,
             border: "1px solid var(--line)", background: "var(--paper)",
             cursor: "pointer", fontFamily: "inherit",
           }}>
@@ -196,13 +203,17 @@ function DashHeader({ userName, accountType, photoUrl, onLogout, onNavigate }: {
               bg={accountType === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)"}
               color={accountType === "COFFEESHOP" ? "var(--c-leveza)" : "var(--ink)"}
             />
-            <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
-              <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{userName.split(" ")[0]}</span>
-              <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)", lineHeight: 1 }}>
-                {accountType === "COFFEESHOP" ? "Cafeteria" : "Cliente"}
-              </span>
-            </span>
-            <Chevron open={open} />
+            {!mob && (
+              <>
+                <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 1 }}>
+                  <span style={{ fontSize: 14, color: "var(--ink)", fontWeight: 500, lineHeight: 1 }}>{userName.split(" ")[0]}</span>
+                  <span className="mono" style={{ fontSize: 9, letterSpacing: ".12em", textTransform: "uppercase", color: "var(--ink-2)", lineHeight: 1 }}>
+                    {accountType === "COFFEESHOP" ? "Cafeteria" : "Cliente"}
+                  </span>
+                </span>
+                <Chevron open={open} />
+              </>
+            )}
           </button>
           {open && (
             <div style={{
@@ -225,22 +236,70 @@ function DashHeader({ userName, accountType, photoUrl, onLogout, onNavigate }: {
 
 /* ── Sidebar ── */
 function Sidebar({
-  accountType, active, setActive, ordersBadge, coursesBadge, userName, userEmail, memberSince, photoUrl,
+  accountType, active, setActive, ordersBadge, coursesBadge, userName, userEmail, memberSince, photoUrl, mob,
 }: {
   accountType: string; active: TabId; setActive: (t: TabId) => void;
-  ordersBadge: number; coursesBadge: number; userName: string; userEmail: string; memberSince: string; photoUrl?: string | null;
+  ordersBadge: number; coursesBadge: number; userName: string; userEmail: string; memberSince: string; photoUrl?: string | null; mob: boolean;
 }) {
   const initial = getInitials(userName);
   const items: { id: TabId; label: string; icon: React.ReactNode; badge?: number }[] = [
     { id: "HOME",         label: "Início",             icon: <IconHome /> },
-    { id: "ORDERS",       label: "Meus Pedidos",        icon: <IconBox />,    badge: ordersBadge || undefined },
-    { id: "SUBSCRIPTION", label: "Minhas Assinaturas",  icon: <IconRepeat /> },
-    { id: "COURSES",      label: "Meus Cursos",         icon: <IconBook />,   badge: coursesBadge || undefined },
+    { id: "ORDERS",       label: "Pedidos",             icon: <IconBox />,    badge: ordersBadge || undefined },
+    { id: "SUBSCRIPTION", label: "Assinaturas",         icon: <IconRepeat /> },
+    { id: "COURSES",      label: "Cursos",              icon: <IconBook />,   badge: coursesBadge || undefined },
     { id: "FAVORITES",    label: "Favoritos",           icon: <IconHeart /> },
-    { id: "PROFILE",      label: "Meu Perfil",          icon: <IconUser /> },
+    { id: "PROFILE",      label: "Perfil",              icon: <IconUser /> },
   ];
+
+  if (mob) {
+    return (
+      <div className="ile-sidebar-pills" style={{
+        display: "flex", gap: 6, overflowX: "auto", paddingBottom: 12, marginBottom: 16,
+        scrollbarWidth: "none" as const, borderBottom: "1px solid var(--line)",
+      }}>
+        <style>{`
+          .ile-sidebar-pills::-webkit-scrollbar{display:none}
+          @media(max-width:767px){.ile-sidebar-desktop{display:none!important}}
+        `}</style>
+        <Link to="/explore" style={{
+          display: "inline-flex", alignItems: "center", gap: 6,
+          padding: "8px 14px", borderRadius: 999, fontSize: 13,
+          flexShrink: 0, textDecoration: "none",
+          background: "var(--c-vibra)", color: "#fff",
+        }}>
+          <IconShop /> Catálogo
+        </Link>
+        {items.map(it => {
+          const on = active === it.id;
+          return (
+            <button key={it.id} onClick={() => setActive(it.id)} style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              padding: "8px 14px", borderRadius: 999, fontSize: 13, border: "none",
+              cursor: "pointer", flexShrink: 0, fontFamily: "inherit",
+              background: on ? "var(--ink)" : "var(--bg-2)",
+              color: on ? "var(--c-leveza)" : "var(--ink-2)",
+              position: "relative",
+            }}>
+              <span style={{ color: on ? "var(--c-mostarda)" : "var(--ink-2)" }}>{it.icon}</span>
+              {it.label}
+              {it.badge !== undefined && (
+                <span style={{
+                  fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 999,
+                  background: on ? "var(--c-mostarda)" : "var(--c-vibra)",
+                  color: on ? "var(--ink)" : "#fff", marginLeft: 2,
+                }}>
+                  {it.badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
-    <aside style={{
+    <aside className="ile-sidebar-desktop" style={{
       background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 18,
       padding: 22, position: "sticky", top: 96, alignSelf: "flex-start",
       display: "flex", flexDirection: "column", gap: 22,
@@ -356,15 +415,16 @@ function SectionHeader({ title, subtitle, cta }: { title: string; subtitle?: str
 
 /* ── PlaceholderView ── */
 function PlaceholderView({ title, body }: { title: string; body: string }) {
+  const mob = useMobile();
   return (
     <section style={{
-      padding: "80px 32px", textAlign: "center",
+      padding: mob ? "40px 20px" : "80px 32px", textAlign: "center",
       background: "var(--paper)", border: "1px dashed var(--line)", borderRadius: 18,
     }}>
       <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)" }}>
         Em breve · íle
       </div>
-      <h2 className="serif" style={{ margin: "12px 0 0", fontSize: 44, lineHeight: 1.05, letterSpacing: "-.02em" }}>
+      <h2 className="serif" style={{ margin: "12px 0 0", fontSize: mob ? 28 : 44, lineHeight: 1.05, letterSpacing: "-.02em" }}>
         {title}
       </h2>
       <p style={{ fontSize: 15, color: "var(--ink-2)", marginTop: 10, maxWidth: 460, marginInline: "auto", lineHeight: 1.55 }}>
@@ -490,7 +550,7 @@ function SummaryCards({
   const hasSub = activeSubOrders.length > 0;
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18, marginBottom: 36 }}>
+    <div className="ile-summary-cards">
       <SummaryCard
         eyebrow="Pedidos ativos"
         value={String(activeOrdersCount)}
@@ -536,20 +596,23 @@ function StatusBadge({ status }: { status: string }) {
   const colors = STATUS_COLORS[cfg.variant];
   return (
     <span style={{
-      display: "inline-flex", alignItems: "center", gap: 7,
-      padding: "5px 10px", borderRadius: 999,
-      background: colors.bg, color: colors.ink, fontSize: 12, alignSelf: "flex-start",
+      display: "inline-flex", alignItems: "center", gap: 5,
+      padding: "4px 9px", borderRadius: 999,
+      background: colors.bg, color: colors.ink, fontSize: 11, alignSelf: "flex-start", flexShrink: 0,
     }}>
-      <span style={{ width: 6, height: 6, borderRadius: 999, background: colors.dot, flexShrink: 0 }} />
+      <span style={{ width: 5, height: 5, borderRadius: 999, background: colors.dot, flexShrink: 0 }} />
       {cfg.label}
     </span>
   );
 }
 
 /* ── OrdersTable ── */
-function OrdersTable({ orders, onOpen }: {
-  orders: Order[]; onOpen?: (o: Order) => void;
+function OrdersTable({ orders, onOpen, mob }: {
+  orders: Order[]; onOpen?: (o: Order) => void; mob: boolean;
 }) {
+  const productLabel = (o: Order) =>
+    o.coffee?.name ?? o.course?.title ?? o.subscription?.name ?? "—";
+
   if (orders.length === 0) {
     return (
       <div style={{ padding: "48px 24px", textAlign: "center", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16 }}>
@@ -566,13 +629,38 @@ function OrdersTable({ orders, onOpen }: {
       </div>
     );
   }
-  const productLabel = (o: Order) =>
-    o.coffee?.name ?? o.course?.title ?? o.subscription?.name ?? "—";
+
+  if (mob) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {orders.map(o => (
+          <div key={o.id} onClick={() => onOpen?.(o)} style={{
+            background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 12,
+            padding: "11px 12px", cursor: onOpen ? "pointer" : "default",
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6, marginBottom: 7 }}>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{productLabel(o)}</div>
+                <div className="mono" style={{ fontSize: 10, color: "var(--ink-2)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>#{o.id.slice(0, 7).toUpperCase()} · {fmtDate(o.createdAt)}</div>
+              </div>
+              <StatusBadge status={o.status} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span className="serif" style={{ fontSize: 16 }}>{fmt(o.totalPrice)}</span>
+              <span style={{ color: "var(--ink-2)" }}><Arrow size={11} /></span>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, overflow: "hidden" }}>
+    <div style={{ background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, overflowX: "auto" }}>
       <div style={{
         display: "grid",
         gridTemplateColumns: "110px 1fr 130px 120px auto",
+        minWidth: 560,
         padding: "12px 20px", background: "var(--bg-2)", borderBottom: "1px solid var(--line)",
       }}>
         {["Pedido", "Produto", "Data", "Valor", "Status"].map((h, i) => (
@@ -588,6 +676,7 @@ function OrdersTable({ orders, onOpen }: {
           style={{
             display: "grid",
             gridTemplateColumns: "110px 1fr 130px 120px auto",
+            minWidth: 560,
             padding: "16px 20px", alignItems: "center",
             borderTop: i ? "1px solid var(--line)" : "none", fontSize: 14,
             cursor: onOpen ? "pointer" : "default",
@@ -615,7 +704,7 @@ function OrdersTable({ orders, onOpen }: {
 }
 
 /* ── OrdersSection ── */
-function OrdersSection({ orders, onGoAll, onOpen }: { orders: Order[]; onGoAll: () => void; onOpen: (o: Order) => void }) {
+function OrdersSection({ orders, onGoAll, onOpen, mob }: { orders: Order[]; onGoAll: () => void; onOpen: (o: Order) => void; mob: boolean }) {
   return (
     <section style={{ marginBottom: 36 }}>
       <SectionHeader
@@ -623,7 +712,7 @@ function OrdersSection({ orders, onGoAll, onOpen }: { orders: Order[]; onGoAll: 
         subtitle={`Seus ${Math.min(orders.length, 4)} pedidos mais recentes`}
         cta={{ label: "Ver todos os pedidos", onClick: onGoAll }}
       />
-      <OrdersTable orders={orders.slice(0, 4)} onOpen={onOpen} />
+      <OrdersTable orders={orders.slice(0, 4)} onOpen={onOpen} mob={mob} />
     </section>
   );
 }
@@ -722,7 +811,7 @@ function CourseProgressCard({ course, idx, compact = false }: { course: Course; 
 }
 
 /* ── ContinueLearning ── */
-function ContinueLearning({ courses, onGoAll }: { courses: Course[]; onGoAll: () => void }) {
+function ContinueLearning({ courses, onGoAll, mob }: { courses: Course[]; onGoAll: () => void; mob: boolean }) {
   if (courses.length === 0) return null;
   return (
     <section style={{ marginBottom: 36 }}>
@@ -731,8 +820,8 @@ function ContinueLearning({ courses, onGoAll }: { courses: Course[]; onGoAll: ()
         subtitle="Cursos em andamento — retome de onde parou"
         cta={{ label: "Ver todos os cursos", onClick: onGoAll }}
       />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-        {courses.slice(0, 4).map((c, i) => <CourseProgressCard key={c.id} course={c} idx={i} />)}
+      <div className="ile-courses-grid">
+        {courses.slice(0, 4).map((c, i) => <CourseProgressCard key={c.id} course={c} idx={i} compact={mob} />)}
       </div>
     </section>
   );
@@ -743,6 +832,7 @@ export default function CustomerDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, logout, updateUser } = useAuth();
+  const mob = useMobile();
 
   const tabFromUrl = (searchParams.get("tab") as TabId) || "HOME";
   const [active, setActive] = useState<TabId>(tabFromUrl);
@@ -910,10 +1000,7 @@ export default function CustomerDashboard() {
       )}
       <DashHeader userName={userName} accountType={accountType} photoUrl={user?.photoUrl as string | null} onLogout={() => { logout(); navigate("/"); }} onNavigate={goTab} />
 
-      <main style={{
-        maxWidth: 1320, margin: "0 auto", padding: "32px 32px 80px",
-        display: "grid", gridTemplateColumns: "280px 1fr", gap: 28, alignItems: "start",
-      }}>
+      <main className="ile-dash-main">
         <Sidebar
           accountType={accountType}
           active={active}
@@ -924,6 +1011,7 @@ export default function CustomerDashboard() {
           userEmail={user?.email ?? ""}
           memberSince={memberSince}
           photoUrl={user?.photoUrl as string | null}
+          mob={mob}
         />
 
         <div>
@@ -948,8 +1036,8 @@ export default function CustomerDashboard() {
                     onGoSubscription={() => activeSubscriptionOrders.length > 0 ? goTab("SUBSCRIPTION") : navigate("/subscriptions")}
                     onGoCourses={() => goTab("COURSES")}
                   />
-                  <OrdersSection orders={orders} onGoAll={() => goTab("ORDERS")} onOpen={setSelectedOrder} />
-                  <ContinueLearning courses={enrolledCourses} onGoAll={() => goTab("COURSES")} />
+                  <OrdersSection orders={orders} onGoAll={() => goTab("ORDERS")} onOpen={setSelectedOrder} mob={mob} />
+                  <ContinueLearning courses={enrolledCourses} onGoAll={() => goTab("COURSES")} mob={mob} />
                 </>
               )}
 
@@ -967,7 +1055,7 @@ export default function CustomerDashboard() {
                       {orders.length} pedido{orders.length !== 1 ? "s" : ""} no total
                     </p>
                   </div>
-                  <OrdersTable orders={orders} onOpen={setSelectedOrder} />
+                  <OrdersTable orders={orders} onOpen={setSelectedOrder} mob={mob} />
                 </>
               )}
 
@@ -990,13 +1078,27 @@ export default function CustomerDashboard() {
                   </div>
                 ) : (
                   <>
-                    <div style={{ marginBottom: 28 }}>
-                      <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 12 }}>
-                        <span style={{ color: "var(--c-vibra)" }}>§</span>&nbsp; Assinaturas
+                    <div style={{ marginBottom: 28, display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+                      <div>
+                        <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 12 }}>
+                          <span style={{ color: "var(--c-vibra)" }}>§</span>&nbsp; Assinaturas
+                        </div>
+                        <h1 className="serif" style={{ margin: 0, fontSize: "clamp(44px, 5vw, 64px)", lineHeight: 0.95, letterSpacing: "-.025em" }}>
+                          Minhas <span className="italic" style={{ color: "var(--c-vibra)" }}>assinaturas</span>.
+                        </h1>
                       </div>
-                      <h1 className="serif" style={{ margin: 0, fontSize: "clamp(44px, 5vw, 64px)", lineHeight: 0.95, letterSpacing: "-.025em" }}>
-                        Minhas <span className="italic" style={{ color: "var(--c-vibra)" }}>assinaturas</span>.
-                      </h1>
+                      <Link to="/subscriptions" style={{
+                        display: "inline-flex", alignItems: "center", gap: 8,
+                        padding: "10px 20px", borderRadius: 999,
+                        border: "1px solid var(--ink)", fontSize: 13,
+                        color: "var(--ink)", textDecoration: "none", whiteSpace: "nowrap",
+                        flexShrink: 0,
+                      }}>
+                        Explorar planos
+                        <svg width={12} height={12} viewBox="0 0 14 14" fill="none">
+                          <path d="M2.5 7h9M7.8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </Link>
                     </div>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
                       {activeSubscriptionOrders.map(order => {
@@ -1116,7 +1218,7 @@ export default function CustomerDashboard() {
                             <div className="mono" style={{ fontSize: 10, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 14 }}>
                               Em andamento · {inProgress.length}
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 14 }}>
                               {inProgress.map((c, i) => <CourseProgressCard key={c.id} course={c} idx={i} compact />)}
                             </div>
                           </section>
@@ -1127,7 +1229,7 @@ export default function CustomerDashboard() {
                             <div className="mono" style={{ fontSize: 10, letterSpacing: ".16em", textTransform: "uppercase", color: "var(--c-glamour)", marginBottom: 14 }}>
                               Concluídos · {doneCourses.length}
                             </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                            <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 14 }}>
                               {doneCourses.map((c, i) => <CourseProgressCard key={c.id} course={c} idx={i + inProgress.length} compact />)}
                             </div>
                           </section>
@@ -1202,7 +1304,7 @@ export default function CustomerDashboard() {
                             </div>
                             <div style={{ marginTop: "auto", display: "flex", gap: 8 }}>
                               <Link
-                                to={`/coffees/${fav.coffeeId}`}
+                                to={`/product/${fav.coffeeId}`}
                                 style={{
                                   flex: 1, padding: "8px 0", borderRadius: 999, textAlign: "center",
                                   background: "var(--ink)", color: "var(--c-leveza)", fontSize: 12,
@@ -1243,9 +1345,9 @@ export default function CustomerDashboard() {
                     </h1>
                   </div>
 
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, maxWidth: 780 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 20, maxWidth: 780 }}>
                     {/* Edit form */}
-                    <div style={{ gridColumn: "1 / -1", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: "28px 28px 24px" }}>
+                    <div style={{ gridColumn: "1 / -1", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: mob ? "20px 16px" : "28px 28px 24px" }}>
                       <div className="serif" style={{ fontSize: 22, letterSpacing: "-.01em", marginBottom: 22 }}>Editar informações</div>
 
                       {/* Photo */}
@@ -1267,7 +1369,7 @@ export default function CustomerDashboard() {
                         </div>
                       </div>
 
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                      <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "1fr 1fr", gap: 14 }}>
                         {[
                           { label: "Nome completo", key: "name", placeholder: "Seu nome" },
                           { label: "Telefone", key: "phoneNumber", placeholder: "(11) 99999-9999" },
@@ -1319,8 +1421,8 @@ export default function CustomerDashboard() {
                     </div>
 
                     {/* Account info + logout */}
-                    <div style={{ gridColumn: "1 / -1", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: "24px 28px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, flexWrap: "wrap" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <div style={{ gridColumn: "1 / -1", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: 16, padding: mob ? "20px 16px" : "24px 28px", display: "flex", alignItems: mob ? "flex-start" : "center", justifyContent: "space-between", gap: 16, flexDirection: mob ? "column" : "row" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 16, minWidth: 0, flex: 1 }}>
                         <Avatar
                           photoUrl={profilePhotoPreview}
                           initial={getInitials(userName)}
@@ -1328,14 +1430,14 @@ export default function CustomerDashboard() {
                           bg={accountType === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)"}
                           color={accountType === "COFFEESHOP" ? "var(--c-leveza)" : "var(--ink)"}
                         />
-                        <div>
-                          <div className="serif" style={{ fontSize: 18, letterSpacing: "-.01em" }}>{userName}</div>
-                          <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2 }}>{user?.email}</div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div className="serif" style={{ fontSize: 18, letterSpacing: "-.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
+                          <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user?.email}</div>
                         </div>
                       </div>
                       <button
                         onClick={() => logout()}
-                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", border: "1px solid var(--c-vibra)", borderRadius: 10, background: "transparent", cursor: "pointer", fontFamily: "inherit", fontSize: 14, color: "var(--c-vibra)" }}
+                        style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", border: "1px solid var(--c-vibra)", borderRadius: 10, background: "transparent", cursor: "pointer", fontFamily: "inherit", fontSize: 14, color: "var(--c-vibra)", width: mob ? "100%" : undefined, justifyContent: mob ? "center" : undefined, flexShrink: 0 }}
                       >
                         <IconLogout /> Sair da conta
                       </button>
