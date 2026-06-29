@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AddCoffeeForm, CoffeeInitialData } from "@/components/Dashboard/AddCoffeeForm";
