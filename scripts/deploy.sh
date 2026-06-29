@@ -12,13 +12,13 @@ git pull origin main
 
 echo "===> Build e deploy da API..."
 cd "$API_DIR"
-npm install --omit=dev
+npm install
 npm run build
 npx prisma migrate deploy
 
 echo "===> Build do frontend..."
 cd "$WEB_DIR"
-npm install --omit=dev
+npm install
 npm run build
 
 echo "===> Reiniciando API..."
