@@ -15,7 +15,7 @@ export interface Coffee {
   supplier?: { id: string; name: string; photoUrl: string | null; supplierType: string } | null;
 }
 
-function getLine(score: number | null): "Raros" | "Extraordinários" | "Origens" {
+export function getLine(score: number | null): "Raros" | "Extraordinários" | "Origens" {
   if (!score) return "Origens";
   if (score >= 88) return "Raros";
   if (score >= 87) return "Extraordinários";

@@ -5,7 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
 import { useMobile } from "@/contexts/MobileContext";
 import { Cart } from "@/components/Cart/Cart";
-import { CoffeeCard, Coffee } from "@/components/CoffeeCard";
+import { CoffeeCard, Coffee, getLine } from "@/components/CoffeeCard";
 
 interface Filters {
   q: string;
