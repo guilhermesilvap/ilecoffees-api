@@ -58,8 +58,9 @@ server {
         try_files $uri =404;
     }
 
-    # SPA fallback
+    # SPA fallback — sempre sem cache para forçar index.html novo
     location / {
+        add_header Cache-Control "no-store, no-cache, must-revalidate";
         try_files $uri $uri/ /index.html;
     }
 
