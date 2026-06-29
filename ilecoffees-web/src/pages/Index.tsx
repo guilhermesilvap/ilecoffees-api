@@ -777,7 +777,7 @@ function CoffeeCard({ c, onAdd, role, mob }: { c: Coffee; onAdd: (c: Coffee, qty
             <div className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", color: lineInk2, marginBottom: 6 }}>
               Quantidade · mín. 0,5 kg · passo 0,5 kg
             </div>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: mob ? "column" : "row", gap: mob ? 8 : 6, alignItems: "center" }}>
               {/* Stepper */}
               <div style={{
                 display: "flex", alignItems: "center",
@@ -819,7 +819,8 @@ function CoffeeCard({ c, onAdd, role, mob }: { c: Coffee; onAdd: (c: Coffee, qty
                 type="button"
                 onClick={() => onAdd(c, qty)}
                 style={{
-                  flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
+                  flex: 1, width: mob ? "100%" : undefined,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
                   padding: "8px 12px", borderRadius: 999,
                   background: lineAccent, color: line === "Origens" ? "#fff" : "var(--c-barro)", fontSize: 12,
                   border: 0, cursor: "pointer", fontFamily: "inherit", fontWeight: 600,
