@@ -28,6 +28,15 @@ interface CoffeeProduct {
 
 interface FreightOption { name: string; days: string; price: number; note?: string; }
 
+interface ReviewItem {
+  id: string;
+  userId: string;
+  rating: number;
+  comment: string | null;
+  createdAt: string;
+  user: { id: string; name: string };
+}
+
 function getLine(score: number | null): string {
   if (!score) return "Origens";
   if (score >= 88) return "Raros";
@@ -433,15 +442,56 @@ function Producer({ coffee }: { coffee: CoffeeProduct }) {
 }
 
 /* ===== Reviews ===== */
-function Reviews() {
+function fmtRelDate(iso: string): string {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 3600) return "há poucos minutos";
+  if (diff < 86400) return `há ${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `há ${Math.floor(diff / 86400)} dia${Math.floor(diff / 86400) > 1 ? "s" : ""}`;
+  if (diff < 2592000) return `há ${Math.floor(diff / 604800)} semana${Math.floor(diff / 604800) > 1 ? "s" : ""}`;
+  return new Date(iso).toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
+}
+
+interface ReviewsProps {
+  coffeeId: string;
+  canReview: boolean;
+  reviews: ReviewItem[];
+  onReviewsChange: (reviews: ReviewItem[]) => void;
+}
+
+function Reviews({ coffeeId, canReview, reviews, onReviewsChange }: ReviewsProps) {
   const mob = useMobile();
-  const rating = 4.8;
-  const count = 24;
-  const histogram = [5, 4, 3, 2, 1].map(s => ({
-    s,
-    n: s === 5 ? 16 : s === 4 ? 5 : s === 3 ? 2 : s === 2 ? 1 : 0,
-  }));
-  const max = Math.max(...histogram.map(h => h.n));
+  const [stars, setStars] = useState(0);
+  const [hoverStar, setHoverStar] = useState(0);
+  const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+
+  const rating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const histogram = [5, 4, 3, 2, 1].map(s => ({ s, n: reviews.filter(r => r.rating === s).length }));
+  const max = Math.max(...histogram.map(h => h.n), 1);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (stars === 0) { setSubmitError("Selecione uma nota de 1 a 5 estrelas."); return; }
+    if (text.trim().length > 0 && text.trim().length < 3) { setSubmitError("O comentário deve ter pelo menos 3 caracteres."); return; }
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await api.post<ReviewItem>(`/coffees/${coffeeId}/reviews`, {
+        rating: stars,
+        comment: text.trim() || null,
+      });
+      onReviewsChange([res.data, ...reviews.filter(r => r.userId !== res.data.userId)]);
+      setSubmitted(true);
+      setShowForm(false);
+    } catch (err: any) {
+      setSubmitError(err?.response?.data?.message ?? "Erro ao enviar avaliação.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <section style={{ marginTop: 56 }}>
@@ -451,22 +501,37 @@ function Reviews() {
       <h2 className="serif" style={{ margin: "14px 0 24px", fontSize: mob ? 28 : "clamp(36px, 4vw, 56px)", lineHeight: 1, letterSpacing: "-.015em" }}>
         Quem provou, <span className="italic" style={{ color: "var(--c-vibra)" }}>aprovou</span>.
       </h2>
+
+      {/* Summary + histogram */}
       <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "300px 1fr", gap: mob ? 12 : 24, marginBottom: 28 }}>
         <div style={{ padding: 22, borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-            <span className="serif" style={{ fontSize: 64, lineHeight: 1, letterSpacing: "-.03em" }}>{rating.toFixed(1)}</span>
-            <span className="serif" style={{ fontSize: 22, color: "var(--ink-2)" }}>/ 5</span>
+            <span className="serif" style={{ fontSize: 64, lineHeight: 1, letterSpacing: "-.03em" }}>
+              {reviews.length === 0 ? "–" : rating.toFixed(1)}
+            </span>
+            {reviews.length > 0 && <span className="serif" style={{ fontSize: 22, color: "var(--ink-2)" }}>/ 5</span>}
           </div>
-          <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
-            {[1, 2, 3, 4, 5].map(i => <StarIcon key={i} filled={i <= Math.round(rating)} size={18} />)}
+          {reviews.length > 0 && (
+            <div style={{ display: "flex", gap: 4, marginTop: 4 }}>
+              {[1, 2, 3, 4, 5].map(i => <StarIcon key={i} filled={i <= Math.round(rating)} size={18} />)}
+            </div>
+          )}
+          <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 8 }}>
+            {reviews.length === 0 ? "Nenhuma avaliação ainda" : `Baseado em ${reviews.length} avaliação${reviews.length > 1 ? "ões" : ""}`}
           </div>
-          <div style={{ fontSize: 13, color: "var(--ink-2)", marginTop: 8 }}>Baseado em {count} avaliações</div>
-          <a href="#" style={{
-            display: "inline-flex", marginTop: 18, padding: "10px 16px",
-            borderRadius: 999, border: "1px solid var(--ink)", fontSize: 13,
-          }}>
-            Avaliar este café
-          </a>
+          {canReview && !submitted && (
+            <button
+              onClick={() => setShowForm(v => !v)}
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 18, padding: "10px 16px", borderRadius: 999, border: "1px solid var(--ink)", fontSize: 13, background: "none", cursor: "pointer", fontFamily: "inherit", color: "var(--ink)" }}
+            >
+              {showForm ? "Cancelar" : "Avaliar este café"}
+            </button>
+          )}
+          {submitted && (
+            <div className="mono" style={{ marginTop: 14, fontSize: 11, letterSpacing: ".12em", color: "var(--success, #228B22)" }}>
+              ✓ Avaliação enviada!
+            </div>
+          )}
         </div>
         <div style={{ padding: "22px 24px", borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -476,8 +541,8 @@ function Reviews() {
                   <span className="mono" style={{ fontSize: 11, width: 12 }}>{h.s}</span>
                   <StarIcon filled size={12} />
                 </span>
-                <span style={{ height: 6, background: "var(--bg-2)", borderRadius: 999 }}>
-                  <span style={{ display: "block", width: `${(h.n / max) * 100}%`, height: "100%", background: "var(--c-mostarda)", borderRadius: 999 }} />
+                <span style={{ height: 6, background: "var(--bg-2, var(--line))", borderRadius: 999 }}>
+                  <span style={{ display: "block", width: `${(h.n / max) * 100}%`, height: "100%", background: "var(--c-mostarda)", borderRadius: 999, transition: "width .3s" }} />
                 </span>
                 <span className="mono" style={{ fontSize: 11, color: "var(--ink-2)", width: 24, textAlign: "right" }}>{h.n}</span>
               </div>
@@ -485,40 +550,67 @@ function Reviews() {
           </div>
         </div>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {[
-          { name: "Marina T.", role: "CUSTOMER", stars: 5, when: "há 3 dias", text: "Sem dúvida o melhor café da casa. O nome não engana — tem doçura de sobremesa e final longo." },
-          { name: "Café Cosmo", role: "COFFEESHOP", stars: 5, when: "há 1 semana", text: "Servimos no nosso menu degustação e foi um sucesso entre os clientes." },
-          { name: "Pedro H.", role: "CUSTOMER", stars: 4, when: "há 2 semanas", text: "Excelente. Vale cada centavo." },
-        ].map((r, i) => (
-          <article key={i} style={{
-            padding: "20px 22px", borderRadius: 14, background: "var(--paper)",
-            border: "1px solid var(--line)", display: "grid", gridTemplateColumns: "auto 1fr", gap: 16,
-          }}>
-            <div style={{
-              width: 40, height: 40, borderRadius: 999,
-              background: r.role === "COFFEESHOP" ? "var(--c-glamour)" : "var(--c-mostarda)",
-              color: r.role === "COFFEESHOP" ? "var(--c-leveza)" : "var(--ink)",
-              display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 13,
-            }}>
-              {r.name.split(" ").map(w => w[0]).slice(0, 2).join("")}
-            </div>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 14, fontWeight: 500 }}>{r.name}</span>
-                {r.role === "COFFEESHOP" && (
-                  <span className="mono" style={{ fontSize: 9, letterSpacing: ".14em", textTransform: "uppercase", padding: "2px 8px", borderRadius: 999, background: "var(--c-glamour)", color: "var(--c-leveza)" }}>Cafeteria</span>
-                )}
-                <span className="mono" style={{ fontSize: 10, letterSpacing: ".1em", color: "var(--ink-2)" }}>{r.when}</span>
+
+      {/* Review form */}
+      {canReview && showForm && (
+        <form onSubmit={handleSubmit} style={{ padding: "24px", borderRadius: 16, background: "var(--paper)", border: "1px solid var(--line)", marginBottom: 20 }}>
+          <div className="mono" style={{ fontSize: 11, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--ink-2)", marginBottom: 14 }}>Sua avaliação</div>
+          <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
+            {[1, 2, 3, 4, 5].map(i => (
+              <button
+                key={i} type="button"
+                onClick={() => setStars(i)}
+                onMouseEnter={() => setHoverStar(i)}
+                onMouseLeave={() => setHoverStar(0)}
+                style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
+              >
+                <StarIcon filled={i <= (hoverStar || stars)} size={28} />
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Comentário opcional (mín. 3 caracteres)…"
+            rows={3}
+            style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: "1px solid var(--line)", background: "var(--bg)", fontSize: 14, fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", outline: "none" }}
+          />
+          {submitError && (
+            <div style={{ fontSize: 13, color: "#b8231a", marginTop: 8 }}>{submitError}</div>
+          )}
+          <button
+            type="submit" disabled={submitting}
+            style={{ marginTop: 12, padding: "11px 22px", borderRadius: 999, background: "var(--ink)", color: "var(--paper)", border: "none", fontSize: 14, fontFamily: "inherit", cursor: submitting ? "not-allowed" : "pointer", opacity: submitting ? 0.7 : 1 }}
+          >
+            {submitting ? "Enviando…" : "Enviar avaliação"}
+          </button>
+        </form>
+      )}
+
+      {/* Review list */}
+      {reviews.length === 0 ? (
+        <p style={{ fontSize: 14, color: "var(--ink-2)", fontStyle: "italic" }}>Seja o primeiro a avaliar este café.</p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {reviews.map(r => (
+            <article key={r.id} style={{ padding: "20px 22px", borderRadius: 14, background: "var(--paper)", border: "1px solid var(--line)", display: "grid", gridTemplateColumns: "auto 1fr", gap: 16 }}>
+              <div style={{ width: 40, height: 40, borderRadius: 999, background: "var(--c-mostarda)", color: "var(--ink)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, fontSize: 13, flexShrink: 0 }}>
+                {r.user.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase()}
               </div>
-              <div style={{ display: "flex", gap: 3, marginTop: 6 }}>
-                {[1, 2, 3, 4, 5].map(i => <StarIcon key={i} filled={i <= r.stars} size={12} />)}
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 14, fontWeight: 500 }}>{r.user.name}</span>
+                  <span className="mono" style={{ fontSize: 10, letterSpacing: ".1em", color: "var(--ink-2)" }}>{fmtRelDate(r.createdAt)}</span>
+                </div>
+                <div style={{ display: "flex", gap: 3, marginTop: 6 }}>
+                  {[1, 2, 3, 4, 5].map(i => <StarIcon key={i} filled={i <= r.rating} size={12} />)}
+                </div>
+                {r.comment && <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", margin: "10px 0 0" }}>{r.comment}</p>}
               </div>
-              <p style={{ fontSize: 14, lineHeight: 1.55, color: "var(--ink-2)", margin: "10px 0 0" }}>{r.text}</p>
-            </div>
-          </article>
-        ))}
-      </div>
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -826,6 +918,7 @@ export default function ProductDetails() {
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<{ name: string; qty: number; variant: string } | null>(null);
   const [isFav, setIsFav] = useState(false);
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const mob = useMobile();
 
   const isRegularUser = type === "USER" && user?.accountType !== "COFFEESHOP";
@@ -840,6 +933,13 @@ export default function ProductDetails() {
       .then(r => setCoffee(r.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, [productId]);
+
+  useEffect(() => {
+    if (!productId) return;
+    api.get<ReviewItem[]>(`/coffees/${productId}/reviews`)
+      .then(r => setReviews(r.data))
+      .catch(() => {});
   }, [productId]);
 
   useEffect(() => {
@@ -873,6 +973,7 @@ export default function ProductDetails() {
   }
 
   const line = getLine(coffee?.score ?? null);
+  const avgRating = reviews.length > 0 ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null;
 
   if (loading) {
     return (
@@ -930,8 +1031,10 @@ export default function ProductDetails() {
               </h1>
               <div style={{ display: "flex", alignItems: "center", gap: 18, marginTop: 18, flexWrap: "wrap" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  {[1, 2, 3, 4, 5].map(i => <StarIcon key={i} filled={i <= 5} size={16} />)}
-                  <span className="mono" style={{ fontSize: 12, letterSpacing: ".06em", color: "var(--ink-2)", marginLeft: 6 }}>4.9 · 24 avaliações</span>
+                  {[1, 2, 3, 4, 5].map(i => <StarIcon key={i} filled={avgRating !== null ? i <= Math.round(avgRating) : false} size={16} />)}
+                  <span className="mono" style={{ fontSize: 12, letterSpacing: ".06em", color: "var(--ink-2)", marginLeft: 6 }}>
+                    {avgRating !== null ? `${avgRating.toFixed(1)} · ${reviews.length} avaliação${reviews.length > 1 ? "ões" : ""}` : "Sem avaliações"}
+                  </span>
                 </div>
                 <span style={{ width: 4, height: 4, borderRadius: 999, background: "var(--ink-3)" }} />
                 <span style={{ fontSize: 13, color: "var(--ink-2)" }}>
@@ -972,7 +1075,12 @@ export default function ProductDetails() {
           <Specs coffee={coffee} />
           <TastingNotes coffee={coffee} />
           <Producer coffee={coffee} />
-          <Reviews />
+          <Reviews
+            coffeeId={productId!}
+            canReview={type === "USER"}
+            reviews={reviews}
+            onReviewsChange={setReviews}
+          />
         </div>
 
         {!mob && <BuyBox coffee={coffee} role={role} onAdd={handleAdd} />}
