@@ -9,6 +9,7 @@ import OrderDetailModal from "@/components/OrderDetailModal";
 import { useMobile } from "@/contexts/MobileContext";
 import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
 import { StatCard } from "@/components/Dashboard/StatCard";
+import { WelcomeBanner, WelcomeAction } from "@/components/Dashboard/WelcomeBanner";
 
 type Coffee = CoffeeInitialData;
 type Subscription = SubscriptionInitialData;
@@ -823,6 +824,17 @@ export default function SupplierDashboard() {
         {/* VISÃO GERAL */}
         {activeTab === "Visão Geral" && (
           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+            <WelcomeBanner
+              name={user?.name ?? "Torrefador"}
+              subtitle="Painel do Torrefador · íle coffees"
+              description="Aqui você gerencia todo o seu portfólio de cafés: cadastre produtos, acompanhe pedidos de cafeterias e clientes finais, configure planos de assinatura e acesse relatórios de desempenho. Use as abas acima para navegar entre as seções."
+              actions={([
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx={12} cy={12} r={10}/><path d="M12 8v8M8 12h8" strokeLinecap="round"/></svg>, label: "Cadastrar produto", description: "Adicione cafés ao seu catálogo", onClick: () => setActiveTab("Produtos") },
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x={9} y={3} width={6} height={4} rx={1}/><path d="M9 12h6M9 16h4" strokeLinecap="round"/></svg>, label: "Ver pedidos", description: "Pedidos de cafeterias e clientes", onClick: () => setActiveTab("Pedidos") },
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M3 3v18h18" strokeLinecap="round"/><path d="M7 16l4-4 4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>, label: "Relatórios", description: "Receita e desempenho mensal", onClick: () => setActiveTab("Relatórios") },
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><rect x={2} y={5} width={20} height={14} rx={2}/><path d="M2 10h20" strokeLinecap="round"/></svg>, label: "Assinaturas", description: "Planos recorrentes dos clientes", onClick: () => setActiveTab("Assinaturas") },
+              ] as WelcomeAction[])}
+            />
             <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4, 1fr)", gap: 16 }}>
               <StatCard label="Produtos ativos" value={coffees.length} sub="cafés cadastrados" />
               <StatCard label="Pedidos pendentes" value={stats?.orders.pending ?? "—"} sub="aguardando processamento" />

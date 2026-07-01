@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobile } from "@/contexts/MobileContext";
 import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
 import { StatCard } from "@/components/Dashboard/StatCard";
+import { WelcomeBanner, WelcomeAction } from "@/components/Dashboard/WelcomeBanner";
 
 type Coffee = CoffeeInitialData;
 
@@ -504,6 +505,17 @@ export default function ProducerDashboard() {
             .reduce((s, o) => s + o.totalPrice, 0);
           return (
           <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+            <WelcomeBanner
+              name={user?.name ?? "Produtor"}
+              subtitle="Painel do Produtor · íle coffees"
+              description="Aqui você gerencia seus lotes de café verde: cadastre produções, acompanhe pedidos feitos por torrefadores parceiros, controle seu estoque por lote e visualize seu histórico de vendas. Navegue pelas abas para acessar cada funcionalidade."
+              actions={([
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx={12} cy={12} r={10}/><path d="M12 8v8M8 12h8" strokeLinecap="round"/></svg>, label: "Cadastrar lote", description: "Adicione um novo lote de café verde", onClick: () => setActiveTab("Meus Cafés") },
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x={9} y={3} width={6} height={4} rx={1}/><path d="M9 12h6M9 16h4" strokeLinecap="round"/></svg>, label: "Pedidos recebidos", description: "Compras de torrefadores", onClick: () => setActiveTab("Pedidos") },
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="8" y1="12" x2="16" y2="12" strokeLinecap="round"/></svg>, label: "Controlar estoque", description: "Quantidade disponível por lote", onClick: () => setActiveTab("Estoque") },
+                { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M3 3v18h18" strokeLinecap="round"/><path d="M7 16l4-4 4 4 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>, label: "Relatórios", description: "Desempenho e histórico de vendas", onClick: () => setActiveTab("Relatórios") },
+              ] as WelcomeAction[])}
+            />
             <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4, 1fr)", gap: 16 }}>
               <StatCard label="Cafés ativos" value={coffees.length} sub="lotes cadastrados" />
               <StatCard label="Pendentes" value={pendingCount} sub="aguardando pagamento" />

@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMobile } from "@/contexts/MobileContext";
 import { DashboardLogo } from "@/components/Dashboard/DashboardLogo";
 import { StatCard } from "@/components/Dashboard/StatCard";
+import { WelcomeBanner, WelcomeAction } from "@/components/Dashboard/WelcomeBanner";
 
 /* ─────────────────────────── types ─────────────────────────── */
 interface Paginated<T> { items: T[]; total: number; page: number; limit: number; totalPages: number; }
@@ -586,6 +587,17 @@ export default function AdminDashboard() {
           {/* ══ VISÃO GERAL ══ */}
           {activeTab === "Visão Geral" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+              <WelcomeBanner
+                name={user?.name ?? "Admin"}
+                subtitle="Painel de Controle · íle coffees"
+                description="Visão centralizada de toda a operação da plataforma. Gerencie usuários, aprovações de fornecedores, acompanhe o fluxo de pedidos, crie planos de parceria e monitore a receita em tempo real. Use as abas para acessar cada módulo de gestão."
+                actions={([
+                  { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><circle cx={9} cy={7} r={4}/><path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M16 3.13a4 4 0 010 7.75"/><path d="M21 21v-2a4 4 0 00-3-3.87"/></svg>, label: "Usuários", description: "Clientes e cafeterias cadastradas", onClick: () => setActiveTab("Usuários") },
+                  { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M20 7H4a1 1 0 00-1 1v11a1 1 0 001 1h16a1 1 0 001-1V8a1 1 0 00-1-1z"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>, label: "Fornecedores", description: "Produtores e torrefadores ativos", onClick: () => setActiveTab("Fornecedores") },
+                  { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x={9} y={3} width={6} height={4} rx={1}/><path d="M9 12h6M9 16h4" strokeLinecap="round"/></svg>, label: "Pedidos", description: "Todos os pedidos da plataforma", onClick: () => setActiveTab("Pedidos") },
+                  { icon: <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6}><rect x={2} y={5} width={20} height={14} rx={2}/><path d="M2 10h20" strokeLinecap="round"/></svg>, label: "Planos", description: "Planos de parceria para fornecedores", onClick: () => setActiveTab("Planos") },
+                ] as WelcomeAction[])}
+              />
               {statsLoading ? <Spinner /> : stats ? (
                 <>
                   <div style={{ display: "grid", gridTemplateColumns: mob ? "repeat(2, minmax(0, 1fr))" : "repeat(4,1fr)", gap: 16 }}>
