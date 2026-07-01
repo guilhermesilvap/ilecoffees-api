@@ -31,10 +31,10 @@ function Eyebrow({ children, n }: { children: React.ReactNode; n?: string }) {
 }
 
 const NAV_LINKS: [string, string][] = [
-  ["Portfólio", "#linhas"],
-  ["Prêmios", "#premios"],
+  ["Cafés", "/explore"],
+  ["Cafeteria", "/coffeeshop"],
+  ["Fornecedor", "/supplier"],
   ["Nossa história", "#historia"],
-  ["Assinatura", "#assinatura"],
 ];
 
 function Header() {
@@ -75,7 +75,7 @@ function Header() {
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
               <Link to="/login" style={{ padding: "9px 16px", fontSize: 14, color: "var(--ink-2)", textDecoration: "none" }}>Entrar</Link>
-              <Link to="/register/customer" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 999, background: "var(--ink)", color: "var(--paper)", fontSize: 14, textDecoration: "none" }}>
+              <Link to="#perfis" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 999, background: "var(--ink)", color: "var(--paper)", fontSize: 14, textDecoration: "none" }}>
                 Começar <ArrowIcon size={12} />
               </Link>
             </div>
@@ -95,9 +95,9 @@ function Header() {
               )
             )}
           </nav>
-          <div style={{ display: "flex", gap: 8, marginTop: 20 }}>
-            <Link to="/login" style={{ flex: 1, textAlign: "center" as const, padding: "13px", fontSize: 15, color: "var(--ink)", border: "1.5px solid rgba(28,8,16,.2)", borderRadius: 999, textDecoration: "none" }}>Entrar</Link>
-            <Link to="/register/customer" style={{ flex: 1, textAlign: "center" as const, padding: "13px", fontSize: 15, background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 999, textDecoration: "none" }}>Começar</Link>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 20 }}>
+            <Link to="/login" onClick={() => setOpen(false)} style={{ textAlign: "center" as const, padding: "13px", fontSize: 15, color: "var(--ink)", border: "1.5px solid rgba(28,8,16,.2)", borderRadius: 999, textDecoration: "none" }}>Entrar</Link>
+            <a href="#perfis" onClick={() => setOpen(false)} style={{ textAlign: "center" as const, padding: "13px", fontSize: 15, background: "var(--ink)", color: "var(--c-leveza)", borderRadius: 999, textDecoration: "none" }}>Escolher perfil</a>
           </div>
         </div>
       )}
@@ -177,13 +177,13 @@ function Hero() {
               }}>
                 Ver os cafés <ArrowIcon />
               </Link>
-              <a href="#historia" style={{
+              <a href="#perfis" style={{
                 display: "inline-flex", alignItems: "center", gap: 10,
                 padding: mob ? "13px 20px" : "15px 24px", borderRadius: 999,
                 fontSize: mob ? 14 : 15, color: "var(--c-leveza)",
                 border: "1.5px solid rgba(244,204,160,.3)", textDecoration: "none",
               }}>
-                Nossa história
+                Qual é o seu perfil?
               </a>
             </div>
 
@@ -242,6 +242,107 @@ function Marquee() {
             <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--c-mostarda)", flexShrink: 0 }} />
           </span>
         ))}
+      </div>
+    </section>
+  );
+}
+
+const PROFILES = [
+  {
+    tag: "Consumidor",
+    tagBg: "var(--c-vibra)",
+    tagColor: "var(--c-leveza)",
+    heading: "Cafés especiais\nna sua casa.",
+    sub: "Assinatura quinzenal, compra avulsa ou clube de degustação — tudo com rastreabilidade completa do grão à xícara.",
+    features: ["Curadoria por Q-Graders", "Clube de assinatura", "Entrega em todo o Brasil", "Rastreabilidade do produtor"],
+    cta: "Explorar cafés",
+    ctaHref: "/explore",
+    bg: "var(--paper)",
+    ink: "var(--ink)",
+    ctaBg: "var(--ink)",
+    ctaColor: "var(--paper)",
+    border: "1.5px solid var(--ink)",
+  },
+  {
+    tag: "Cafeteria / Bar",
+    tagBg: "var(--ink)",
+    tagColor: "var(--c-mostarda)",
+    heading: "Compre direto dos melhores torrefadores.",
+    sub: "Catálogo B2B com preço de atacado, pedidos recorrentes e gestão integrada de estoque para o seu negócio.",
+    features: ["Preço diferenciado por volume", "Catálogo exclusivo B2B", "Pedidos recorrentes", "Gestão de estoque integrada"],
+    cta: "Acessar portal",
+    ctaHref: "/coffeeshop",
+    bg: "var(--c-mostarda)",
+    ink: "var(--ink)",
+    ctaBg: "var(--ink)",
+    ctaColor: "var(--c-mostarda)",
+    border: "1.5px solid var(--ink)",
+  },
+  {
+    tag: "Produtor / Torrefador",
+    tagBg: "var(--c-mostarda)",
+    tagColor: "var(--ink)",
+    heading: "Venda para o Brasil inteiro.",
+    sub: "Distribua sua produção para cafeterias e consumidores com rastreabilidade, planos flexíveis e gestão completa.",
+    features: ["Acesso a +1.200 cafeterias", "Planos de exposição", "Controle de pedidos", "Relatórios de vendas"],
+    cta: "Seja parceiro",
+    ctaHref: "/supplier",
+    bg: "var(--c-glamour)",
+    ink: "var(--c-leveza)",
+    ctaBg: "var(--c-mostarda)",
+    ctaColor: "var(--ink)",
+    border: "1.5px solid rgba(244,204,160,.25)",
+  },
+] as const;
+
+function ProfilesSection() {
+  const mob = useMobile();
+  return (
+    <section id="perfis" style={{ borderTop: "1px solid var(--ink)", background: "var(--bg)" }}>
+      <div style={{ maxWidth: 1240, margin: "0 auto", padding: mob ? "64px 20px 56px" : "100px 40px 88px" }}>
+        <div style={{ marginBottom: mob ? 40 : 64 }}>
+          <Eyebrow n="§">Para quem é a íle?</Eyebrow>
+          <h2 className="serif" style={{ margin: "16px 0 0", fontSize: mob ? "clamp(36px, 9vw, 56px)" : "clamp(48px, 5vw, 80px)", lineHeight: 0.92, letterSpacing: "-.025em", maxWidth: 700 }}>
+            Escolha <span className="italic" style={{ color: "var(--c-vibra)" }}>seu caminho</span>.
+          </h2>
+          {!mob && (
+            <p style={{ fontSize: 16, color: "var(--ink-2)", lineHeight: 1.6, marginTop: 20, maxWidth: 560 }}>
+              Nossa plataforma conecta toda a cadeia do café especial. Cada perfil tem uma área dedicada.
+            </p>
+          )}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: mob ? "1fr" : "repeat(3, 1fr)", gap: mob ? 12 : 16 }}>
+          {PROFILES.map((p) => (
+            <article key={p.tag} style={{ background: p.bg, color: p.ink, border: p.border, borderRadius: 20, padding: mob ? "28px 24px 24px" : "36px 32px 28px", display: "flex", flexDirection: "column", gap: 24 }}>
+              <div>
+                <span className="mono" style={{ fontSize: 10, letterSpacing: ".16em", textTransform: "uppercase", background: p.tagBg, color: p.tagColor, padding: "5px 12px", borderRadius: 999, display: "inline-block" }}>
+                  {p.tag}
+                </span>
+              </div>
+              <h3 className="serif" style={{ margin: 0, fontSize: mob ? "clamp(28px, 6vw, 36px)" : "clamp(28px, 2.5vw, 40px)", lineHeight: 0.95, letterSpacing: "-.02em", whiteSpace: "pre-line" }}>
+                {p.heading}
+              </h3>
+              <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, opacity: 0.75 }}>
+                {p.sub}
+              </p>
+              <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
+                {p.features.map(f => (
+                  <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13 }}>
+                    <span style={{ width: 5, height: 5, borderRadius: 999, background: p.ctaBg, flexShrink: 0, opacity: 0.9 }} />
+                    <span style={{ opacity: 0.8 }}>{f}</span>
+                  </li>
+                ))}
+              </ul>
+              <Link
+                to={p.ctaHref}
+                style={{ display: "inline-flex", alignItems: "center", gap: 10, padding: "13px 22px", background: p.ctaBg, color: p.ctaColor, borderRadius: 999, fontSize: 14, textDecoration: "none", alignSelf: "flex-start", marginTop: "auto", border: "1.5px solid transparent" }}
+              >
+                {p.cta} <ArrowIcon size={12} />
+              </Link>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -522,7 +623,7 @@ function Footer() {
           {([
             ["Loja", [["Cafés", "/explore"], ["Assinatura", "#assinatura"], ["Equipamentos", "#"], ["Vale-presente", "#"]]],
             ["Casa", [["Nossa história", "#historia"], ["Produtores", "#"], ["Cafeteria", "#"], ["Diário", "#"]]],
-            ["Conta", [["Entrar", "/login"], ["Fornecedor", "/home/supplier"], ["Atendimento", "#"], ["Política de troca", "#"]]],
+            ["Parceiros", [["Cafeteria / Bar", "/coffeeshop"], ["Produtor", "/supplier"], ["Torrefador", "/supplier"], ["Entrar", "/login"]]],
           ] as [string, [string, string][]][]).map(([title, items]) => (
             <div key={title}>
               <div className="mono" style={{ fontSize: 11, letterSpacing: ".18em", textTransform: "uppercase", color: "var(--c-mostarda)", marginBottom: 12 }}>{title}</div>
@@ -554,6 +655,7 @@ export default function Home() {
       <Header />
       <Hero />
       <Marquee />
+      <ProfilesSection />
       <LinhasGrid />
       <Destaque />
       <Premios />
