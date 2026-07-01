@@ -255,7 +255,7 @@ function LoginForm() {
             />
           </Field>
 
-          <Field label="Senha" error={showPassErr} actionLabel="Esqueci minha senha" onAction={() => alert("Enviaremos um link de recuperação para o e-mail informado.")}>
+          <Field label="Senha" error={showPassErr} actionLabel="Esqueci minha senha" onAction={() => window.location.href = "/forgot-password"}>
             <div style={{ position: "relative" }}>
               <input
                 type={showPass ? "text" : "password"}

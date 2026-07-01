@@ -64,19 +64,21 @@ model SupplierPlan {
 }
 
 model Supplier {
-  id               String         @id @default(uuid())
-  photoUrl         String?
-  name             String
-  cep              String
-  street           String
-  number           String
-  district         String
-  city             String
-  state            String
-  complement       String?
-  email            String         @unique
-  passwordHash     String
-  deletedAt        DateTime?
+  id                          String         @id @default(uuid())
+  photoUrl                    String?
+  name                        String
+  cep                         String
+  street                      String
+  number                      String
+  district                    String
+  city                        String
+  state                       String
+  complement                  String?
+  email                       String         @unique
+  passwordHash                String
+  passwordResetToken          String?
+  passwordResetTokenExpiresAt DateTime?
+  deletedAt                   DateTime?
   createdAt        DateTime       @default(now())
   isActive         Boolean        @default(true)
   planId           String?
@@ -96,13 +98,15 @@ model Supplier {
 }
 
 model User {
-  id                String                 @id @default(uuid())
-  photoUrl          String?
-  accountType       AccountType
-  name              String
-  email             String                 @unique
-  phoneNumber       String
-  passwordHash      String
+  id                        String                 @id @default(uuid())
+  photoUrl                  String?
+  accountType               AccountType
+  name                      String
+  email                     String                 @unique
+  phoneNumber               String
+  passwordHash              String
+  passwordResetToken        String?
+  passwordResetTokenExpiresAt DateTime?
   cep               String
   street            String
   number            String

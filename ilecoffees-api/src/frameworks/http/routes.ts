@@ -125,6 +125,9 @@ import { DeleteEmployeeUseCase } from '@/use-cases/delete-employee'
 import { PrismaEmployeesRepository } from '@/adapters/repositories/prisma-employees-repository'
 import { EmployeesController } from '@/adapters/controllers/employees-controller'
 import { requireEmployee } from '@/middlewares/requireEmployee'
+import { ForgotPasswordUseCase } from '@/use-cases/forgot-password'
+import { ResetPasswordUseCase } from '@/use-cases/reset-password'
+import { MailService } from '@/services/mail-service'
 
 // Controllers
 import { CoffeesController } from '@/adapters/controllers/coffees-controller'
@@ -143,6 +146,7 @@ import { StockController } from '@/adapters/controllers/stock-controller'
 import { NotificationsController } from '@/adapters/controllers/notifications-controller'
 import { CoffeeshopStockController } from '@/adapters/controllers/coffeeshop-stock-controller'
 import { FavoritesController } from '@/adapters/controllers/favorites-controller'
+import { PasswordResetController } from '@/adapters/controllers/password-reset-controller'
 
 // --- Wiring ---
 
@@ -172,6 +176,8 @@ const notificationService = new NotificationService(notificationsRepo, [
   new EmailChannel(),
 ])
 
+const mailService = new MailService()
+
 const deleteCoffeeUseCase = new DeleteCoffeeUseCase(coffeesRepo, suppliersRepo)
 const deleteSupplierUseCase = new DeleteSupplierUseCase(suppliersRepo, coffeesRepo)
 const deleteSubscriptionUseCase = new DeleteSubscriptionUseCase(subscriptionsRepo)
@@ -186,12 +192,12 @@ const coffeesController = new CoffeesController(
 )
 
 const usersController = new UsersController(
-  new CreateUserUseCase(usersRepo, suppliersRepo),
+  new CreateUserUseCase(usersRepo, suppliersRepo, mailService),
   new UpdateUserUseCase(usersRepo),
 )
 
 const suppliersController = new SuppliersController(
-  new CreateSupplierUseCase(suppliersRepo, usersRepo),
+  new CreateSupplierUseCase(suppliersRepo, usersRepo, mailService),
   new UpdateSupplierUseCase(suppliersRepo),
   suppliersRepo,
   new ConnectMpAccountUseCase(suppliersRepo),
@@ -248,8 +254,13 @@ const cartController = new CartController(
   new UpdateCartItemUseCase(cartItemsRepo, coffeesRepo),
 )
 
+const passwordResetController = new PasswordResetController(
+  new ForgotPasswordUseCase(usersRepo, suppliersRepo, mailService),
+  new ResetPasswordUseCase(usersRepo, suppliersRepo),
+)
+
 const ordersController = new OrdersController(
-  new CreateOrderUseCase(cartItemsRepo, coffeesRepo, ordersRepo, usersRepo),
+  new CreateOrderUseCase(cartItemsRepo, coffeesRepo, ordersRepo, usersRepo, notificationService),
   new ListOrdersUseCase(ordersRepo),
   new ListSupplierOrdersUseCase(ordersRepo),
   new CancelOrderUseCase(ordersRepo),
@@ -348,6 +359,8 @@ routes.post('/users', upload.single('photo'), usersController.create)
 routes.post('/suppliers', upload.single('photo'), suppliersController.create)
 routes.post('/sessions', sessionsController.create)
 routes.post('/sessions/refresh', sessionsController.refresh)
+routes.post('/forgot-password', passwordResetController.forgot)
+routes.post('/reset-password', passwordResetController.reset)
 routes.get('/coffees', optionalAuth, coffeesController.index)
 routes.get('/coffees/:id', optionalAuth, coffeesController.show)
 routes.get('/subscriptions', optionalAuth, subscriptionsController.index)

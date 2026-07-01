@@ -4,6 +4,8 @@ import { NotificationRecipient, NotificationPayload } from '@/services/channels/
 import { PurchaseConfirmedEmail } from './templates/purchase-confirmed'
 import { OrderStatusEmail } from './templates/order-status'
 import { SubscriptionActivatedEmail } from './templates/subscription-activated'
+import { WelcomeEmail } from './templates/welcome'
+import { PasswordResetEmail } from './templates/password-reset'
 
 interface TemplateContext {
   recipient: NotificationRecipient
@@ -21,6 +23,10 @@ export async function renderEmailTemplate(
       return render(React.createElement(OrderStatusEmail, context))
     case 'SUBSCRIPTION':
       return render(React.createElement(SubscriptionActivatedEmail, context))
+    case 'WELCOME':
+      return render(React.createElement(WelcomeEmail, context))
+    case 'PASSWORD_RESET':
+      return render(React.createElement(PasswordResetEmail, context))
     default:
       return null
   }

@@ -30,6 +30,15 @@ export class UpdateOrderStatusUseCase {
 
     if (order.user) {
       const label = statusLabel[status] ?? status.toLowerCase()
+
+      let body = `Seu pedido #${id.slice(0, 8)} foi marcado como ${label}.`
+      if (status === 'SHIPPED' && trackingCode) {
+        body += ` Código de rastreio: ${trackingCode}.`
+      }
+
+      const type = status === 'PAID' ? 'PURCHASE' : 'ORDER_STATUS'
+      const title = status === 'PAID' ? 'Pagamento confirmado!' : 'Status do pedido atualizado'
+
       await this.notificationService.notify(
         {
           id: order.user.id,
@@ -38,10 +47,10 @@ export class UpdateOrderStatusUseCase {
           phoneNumber: order.user.phoneNumber,
         },
         {
-          type: 'ORDER_STATUS',
-          title: 'Status do pedido atualizado',
-          body: `Seu pedido #${id.slice(0, 8)} foi marcado como ${label}.`,
-          data: { orderId: id, status },
+          type,
+          title,
+          body,
+          data: { orderId: id, status, ...(trackingCode ? { trackingCode } : {}) },
         },
         { userId: order.user.id },
       ).catch(() => {})

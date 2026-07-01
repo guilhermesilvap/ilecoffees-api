@@ -110,4 +110,20 @@ export class PrismaSuppliersRepository implements SuppliersRepository {
     })
     return toSupplierDomain(record)
   }
+
+  async setResetToken(id: string, token: string, expiresAt: Date): Promise<void> {
+    await this.prisma.supplier.update({ where: { id }, data: { passwordResetToken: token, passwordResetTokenExpiresAt: expiresAt } })
+  }
+
+  async findByResetToken(token: string): Promise<Supplier | null> {
+    const record = await this.prisma.supplier.findFirst({
+      where: { passwordResetToken: token, deletedAt: null, passwordResetTokenExpiresAt: { gt: new Date() } },
+    })
+    if (!record) return null
+    return toSupplierDomain(record)
+  }
+
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.prisma.supplier.update({ where: { id }, data: { passwordHash, passwordResetToken: null, passwordResetTokenExpiresAt: null } })
+  }
 }

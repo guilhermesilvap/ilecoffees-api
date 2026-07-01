@@ -70,4 +70,20 @@ export class PrismaUsersRepository implements UsersRepository {
   async softDelete(id: string): Promise<void> {
     await this.prisma.user.update({ where: { id }, data: { deletedAt: new Date() } })
   }
+
+  async setResetToken(id: string, token: string, expiresAt: Date): Promise<void> {
+    await this.prisma.user.update({ where: { id }, data: { passwordResetToken: token, passwordResetTokenExpiresAt: expiresAt } })
+  }
+
+  async findByResetToken(token: string): Promise<User | null> {
+    const record = await this.prisma.user.findFirst({
+      where: { passwordResetToken: token, deletedAt: null, passwordResetTokenExpiresAt: { gt: new Date() } },
+    })
+    if (!record) return null
+    return toUserDomain(record)
+  }
+
+  async updatePassword(id: string, passwordHash: string): Promise<void> {
+    await this.prisma.user.update({ where: { id }, data: { passwordHash, passwordResetToken: null, passwordResetTokenExpiresAt: null } })
+  }
 }

@@ -17,6 +17,8 @@ import CustomerHome from "./pages/Home/CustomerHome";
 import CafeteriaLanding from "./pages/Landing/CafeteriaLanding";
 import FornecedorLanding from "./pages/Landing/FornecedorLanding";
 import Login from "./pages/Login";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 import RegisterCustomer from "./pages/RegisterCustomer";
 import RegisterSupplier from "./pages/RegisterSupplier";
 import SupplierDashboard from "./pages/Dashboard/Supplier";
@@ -80,6 +82,8 @@ const App = () => (
 
                 {/* Somente para visitantes (redireciona quem já está logado) */}
                 <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+                <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
+                <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
                 <Route path="/register/customer" element={<GuestRoute><RegisterCustomer /></GuestRoute>} />
                 <Route path="/register/supplier" element={<GuestRoute><RegisterSupplier /></GuestRoute>} />
 

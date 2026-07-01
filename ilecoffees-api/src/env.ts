@@ -7,6 +7,7 @@ const envSchema = z.object({
   CLOUDINARY_CLOUD_NAME: z.string(),
   CLOUDINARY_API_KEY: z.string(),
   CLOUDINARY_API_SECRET: z.string(),
+  FRONTEND_URL: z.string().default('https://ilecoffees.com.br'),
   RESEND_API_KEY: z.string().default(''),
   MAIL_FROM: z.string().default(''),
   MP_ACCESS_TOKEN: z.string().default(''),

@@ -45,4 +45,7 @@ export interface UsersRepository {
   list(opts?: ListUsersOptions): Promise<User[]>
   count(): Promise<number>
   softDelete(id: string): Promise<void>
+  setResetToken(id: string, token: string, expiresAt: Date): Promise<void>
+  findByResetToken(token: string): Promise<User | null>
+  updatePassword(id: string, passwordHash: string): Promise<void>
 }

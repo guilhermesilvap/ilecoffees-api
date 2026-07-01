@@ -4,6 +4,7 @@ import { CartItemsRepository } from '@/repositories/cart-items-repository'
 import { CoffeesRepository } from '@/repositories/coffees-repository'
 import { OrdersRepository } from '@/repositories/orders-repository'
 import { UsersRepository } from '@/repositories/users-repository'
+import { NotificationService } from '@/services/notification-service'
 
 export interface ShippingChoice {
   supplierId: string
@@ -24,6 +25,7 @@ export class CreateOrderUseCase {
     private coffeesRepository: CoffeesRepository,
     private ordersRepository: OrdersRepository,
     private usersRepository: UsersRepository,
+    private notificationService: NotificationService,
   ) {}
 
   async execute({ userId, deliveryCep, shippingChoices }: CreateOrderInput): Promise<Order[]> {
@@ -77,6 +79,20 @@ export class CreateOrderUseCase {
     }
 
     const orders = await this.ordersRepository.createBatch(orderDataList)
+
+    // Notifica por e-mail para cada pedido criado
+    for (const order of orders) {
+      this.notificationService.notify(
+        { id: user.id!, name: user.name, email: user.email, phoneNumber: user.phoneNumber },
+        {
+          type: 'PURCHASE',
+          title: 'Pedido realizado com sucesso!',
+          body: `Seu pedido #${order.id!.slice(0, 8)} foi criado. Aguarde a confirmação do pagamento.`,
+          data: { orderId: order.id },
+        },
+        { userId: user.id },
+      ).catch(() => {})
+    }
 
     return orders
   }

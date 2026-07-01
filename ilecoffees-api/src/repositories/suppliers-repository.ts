@@ -55,4 +55,7 @@ export interface SuppliersRepository {
   clearPlanFromSuppliers(planId: string): Promise<void>
   updateMpTokens(id: string, tokens: MpTokensDTO): Promise<Supplier>
   clearMpTokens(id: string): Promise<Supplier>
+  setResetToken(id: string, token: string, expiresAt: Date): Promise<void>
+  findByResetToken(token: string): Promise<Supplier | null>
+  updatePassword(id: string, passwordHash: string): Promise<void>
 }
