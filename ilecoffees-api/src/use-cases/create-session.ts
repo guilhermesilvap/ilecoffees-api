@@ -70,6 +70,10 @@ export class CreateSessionUseCase {
     const passwordMatched = await compare(password, account.passwordHash as string)
     if (!passwordMatched) throw new AppError('E-mail ou senha inválidos', 401)
 
+    if (account.emailVerified === false) {
+      throw new AppError('Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.', 403)
+    }
+
     const { secret, expiresIn, refreshSecret, refreshExpiresIn } = authConfig.jwt
     const payload: Record<string, unknown> = { id: account.id, type }
     if (type === 'USER') payload.accountType = account.accountType

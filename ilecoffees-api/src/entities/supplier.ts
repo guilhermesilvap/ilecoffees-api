@@ -20,6 +20,7 @@ export interface SupplierData {
   mpRefreshToken?: string | null
   mpUserId?: string | null
   mpTokenExpiresAt?: Date | null
+  emailVerified?: boolean | null
   deletedAt?: Date | null
   createdAt?: Date
 }
@@ -44,6 +45,7 @@ export class Supplier {
   mpRefreshToken?: string | null
   mpUserId?: string | null
   mpTokenExpiresAt?: Date | null
+  emailVerified?: boolean | null
   deletedAt?: Date | null
   createdAt?: Date
 

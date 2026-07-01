@@ -14,6 +14,8 @@ export interface CreateSupplierDTO {
   city: string
   state: string
   complement?: string | null
+  emailVerified?: boolean | null
+  emailVerificationToken?: string | null
 }
 
 export interface UpdateSupplierDTO {
@@ -58,4 +60,7 @@ export interface SuppliersRepository {
   setResetToken(id: string, token: string, expiresAt: Date): Promise<void>
   findByResetToken(token: string): Promise<Supplier | null>
   updatePassword(id: string, passwordHash: string): Promise<void>
+  setVerificationToken(id: string, token: string): Promise<void>
+  findByVerificationToken(token: string): Promise<Supplier | null>
+  markEmailVerified(id: string): Promise<void>
 }

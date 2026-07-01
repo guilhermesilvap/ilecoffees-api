@@ -19,6 +19,7 @@ import FornecedorLanding from "./pages/Landing/FornecedorLanding";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import VerifyEmail from "./pages/VerifyEmail";
 import RegisterCustomer from "./pages/RegisterCustomer";
 import RegisterSupplier from "./pages/RegisterSupplier";
 import SupplierDashboard from "./pages/Dashboard/Supplier";
@@ -84,6 +85,7 @@ const App = () => (
                 <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
                 <Route path="/forgot-password" element={<GuestRoute><ForgotPassword /></GuestRoute>} />
                 <Route path="/reset-password" element={<GuestRoute><ResetPassword /></GuestRoute>} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/register/customer" element={<GuestRoute><RegisterCustomer /></GuestRoute>} />
                 <Route path="/register/supplier" element={<GuestRoute><RegisterSupplier /></GuestRoute>} />
 

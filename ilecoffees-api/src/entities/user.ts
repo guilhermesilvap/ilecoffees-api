@@ -15,6 +15,7 @@ export interface UserData {
   city: string
   state: string
   complement?: string | null
+  emailVerified?: boolean | null
   deletedAt?: Date | null
   createdAt?: Date
 }
@@ -34,6 +35,7 @@ export class User {
   city!: string
   state!: string
   complement?: string | null
+  emailVerified?: boolean | null
   deletedAt?: Date | null
   createdAt?: Date
 

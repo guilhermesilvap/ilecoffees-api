@@ -18,6 +18,7 @@ function toUserDomain(r: PrismaUser): User {
     city: r.city,
     state: r.state,
     complement: r.complement,
+    emailVerified: r.emailVerified,
     deletedAt: r.deletedAt,
     createdAt: r.createdAt,
   } satisfies UserData)
@@ -85,5 +86,19 @@ export class PrismaUsersRepository implements UsersRepository {
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     await this.prisma.user.update({ where: { id }, data: { passwordHash, passwordResetToken: null, passwordResetTokenExpiresAt: null } })
+  }
+
+  async setVerificationToken(id: string, token: string): Promise<void> {
+    await this.prisma.user.update({ where: { id }, data: { emailVerificationToken: token, emailVerified: false } })
+  }
+
+  async findByVerificationToken(token: string): Promise<User | null> {
+    const record = await this.prisma.user.findFirst({ where: { emailVerificationToken: token, deletedAt: null } })
+    if (!record) return null
+    return toUserDomain(record)
+  }
+
+  async markEmailVerified(id: string): Promise<void> {
+    await this.prisma.user.update({ where: { id }, data: { emailVerified: true, emailVerificationToken: null } })
   }
 }

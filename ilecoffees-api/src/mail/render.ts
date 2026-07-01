@@ -6,6 +6,7 @@ import { OrderStatusEmail } from './templates/order-status'
 import { SubscriptionActivatedEmail } from './templates/subscription-activated'
 import { WelcomeEmail } from './templates/welcome'
 import { PasswordResetEmail } from './templates/password-reset'
+import { EmailVerificationEmail } from './templates/email-verification'
 
 interface TemplateContext {
   recipient: NotificationRecipient
@@ -27,6 +28,8 @@ export async function renderEmailTemplate(
       return render(React.createElement(WelcomeEmail, context))
     case 'PASSWORD_RESET':
       return render(React.createElement(PasswordResetEmail, context))
+    case 'EMAIL_VERIFICATION':
+      return render(React.createElement(EmailVerificationEmail, context))
     default:
       return null
   }

@@ -23,6 +23,7 @@ function toSupplierDomain(r: PrismaSupplier): Supplier {
     mpRefreshToken: r.mpRefreshToken,
     mpUserId: r.mpUserId,
     mpTokenExpiresAt: r.mpTokenExpiresAt,
+    emailVerified: r.emailVerified,
     deletedAt: r.deletedAt,
     createdAt: r.createdAt,
   } satisfies SupplierData)
@@ -125,5 +126,19 @@ export class PrismaSuppliersRepository implements SuppliersRepository {
 
   async updatePassword(id: string, passwordHash: string): Promise<void> {
     await this.prisma.supplier.update({ where: { id }, data: { passwordHash, passwordResetToken: null, passwordResetTokenExpiresAt: null } })
+  }
+
+  async setVerificationToken(id: string, token: string): Promise<void> {
+    await this.prisma.supplier.update({ where: { id }, data: { emailVerificationToken: token, emailVerified: false } })
+  }
+
+  async findByVerificationToken(token: string): Promise<Supplier | null> {
+    const record = await this.prisma.supplier.findFirst({ where: { emailVerificationToken: token, deletedAt: null } })
+    if (!record) return null
+    return toSupplierDomain(record)
+  }
+
+  async markEmailVerified(id: string): Promise<void> {
+    await this.prisma.supplier.update({ where: { id }, data: { emailVerified: true, emailVerificationToken: null } })
   }
 }

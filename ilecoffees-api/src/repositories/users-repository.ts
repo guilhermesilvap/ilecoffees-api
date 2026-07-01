@@ -16,6 +16,8 @@ export interface CreateUserDTO {
   city: string
   state: string
   complement?: string | null
+  emailVerified?: boolean | null
+  emailVerificationToken?: string | null
 }
 
 export interface UpdateUserDTO {
@@ -48,4 +50,7 @@ export interface UsersRepository {
   setResetToken(id: string, token: string, expiresAt: Date): Promise<void>
   findByResetToken(token: string): Promise<User | null>
   updatePassword(id: string, passwordHash: string): Promise<void>
+  setVerificationToken(id: string, token: string): Promise<void>
+  findByVerificationToken(token: string): Promise<User | null>
+  markEmailVerified(id: string): Promise<void>
 }

@@ -127,6 +127,7 @@ import { EmployeesController } from '@/adapters/controllers/employees-controller
 import { requireEmployee } from '@/middlewares/requireEmployee'
 import { ForgotPasswordUseCase } from '@/use-cases/forgot-password'
 import { ResetPasswordUseCase } from '@/use-cases/reset-password'
+import { VerifyEmailUseCase } from '@/use-cases/verify-email'
 import { MailService } from '@/services/mail-service'
 
 // Controllers
@@ -257,6 +258,7 @@ const cartController = new CartController(
 const passwordResetController = new PasswordResetController(
   new ForgotPasswordUseCase(usersRepo, suppliersRepo, mailService),
   new ResetPasswordUseCase(usersRepo, suppliersRepo),
+  new VerifyEmailUseCase(usersRepo, suppliersRepo),
 )
 
 const ordersController = new OrdersController(
@@ -361,6 +363,7 @@ routes.post('/sessions', sessionsController.create)
 routes.post('/sessions/refresh', sessionsController.refresh)
 routes.post('/forgot-password', passwordResetController.forgot)
 routes.post('/reset-password', passwordResetController.reset)
+routes.get('/verify-email', passwordResetController.verifyEmail)
 routes.get('/coffees', optionalAuth, coffeesController.index)
 routes.get('/coffees/:id', optionalAuth, coffeesController.show)
 routes.get('/subscriptions', optionalAuth, subscriptionsController.index)

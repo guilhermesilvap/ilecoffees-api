@@ -1,9 +1,11 @@
 import { hash } from 'bcrypt'
+import { randomBytes } from 'crypto'
 import { AppError } from '@/utils/AppError'
 import { Supplier } from '@/entities/supplier'
 import { SuppliersRepository, CreateSupplierDTO } from '@/repositories/suppliers-repository'
 import { UsersRepository } from '@/repositories/users-repository'
 import { MailService } from '@/services/mail-service'
+import { env } from '@/env'
 
 interface CreateSupplierInput extends Omit<CreateSupplierDTO, 'passwordHash'> {
   password: string
@@ -28,14 +30,24 @@ export class CreateSupplierUseCase {
 
     const { password, ...rest } = input
     const passwordHash = await hash(password, 8)
+    const verificationToken = randomBytes(32).toString('hex')
 
-    const supplier = await this.suppliersRepository.create({ ...rest, email, passwordHash })
+    const supplier = await this.suppliersRepository.create({
+      ...rest,
+      email,
+      passwordHash,
+      emailVerified: false,
+      emailVerificationToken: verificationToken,
+    })
+
+    const verifyUrl = `${env.FRONTEND_URL}/verify-email?token=${verificationToken}`
 
     this.mailService.send({
       to: supplier.email,
       name: supplier.name,
-      subject: 'Bem-vindo(a) à ilecoffees ☕',
-      type: 'WELCOME',
+      subject: 'Confirme seu e-mail — ilecoffees',
+      type: 'EMAIL_VERIFICATION',
+      data: { verifyUrl },
     }).catch(() => {})
 
     return supplier
